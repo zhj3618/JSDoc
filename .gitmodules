@@ -1,0 +1,3 @@
+[submodule "lib/template/normal"]
+	path = lib/template/normal
+	url = git://github.com/gmosx/normal-template.git
