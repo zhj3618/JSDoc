@@ -1,0 +1,38 @@
+<html>
+<head>
+	<title>Class Overview</title>
+</head>
+
+<body>
+
+<h1>Class Overview</h1>
+
+{:reduce classes}
+    <div class="class-section">
+    	<h2 class="class-name">{=name}</h2>
+    	
+    	<div class="class-property-section">
+    	<h3>Properties</h3>
+    	{:reduce properties}
+    		<div class="class-property-name">{=name}</div>
+		{:else}
+			<p class="warn">No documented properties found.</p>
+		{/:reduce}
+		</div>
+		
+		<div class="class-method-section">
+		<h3>Methods</h3>
+		{:reduce methods}
+    		<div class="class-method-name">{=name}</div>
+		{:else}
+			<p class="warn">No documented methods found.</p>
+		{/:reduce}
+		</div>
+    	
+    </div>
+{:else}
+    <p class="warn">No documented classes found.</p>
+{/:reduce}
+
+</body>
+</html>
