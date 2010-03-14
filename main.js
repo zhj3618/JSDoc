@@ -1,9 +1,12 @@
-// USAGE: bin/ringo apps/jsdoc-toolkit/main.js -t path/to/template path/to/src
-
-var defaults = {
-	destination: './out/',
-	src: './js/'
-}
+// USAGE:
+// Parse js/src.js for JSON doc comments, output as JSON to default folder: out
+//     $ bin/ringo apps/jsdoc-toolkit/main.js js/src.js
+// Set output format explicitlty to JSON
+//     $ bin/ringo apps/jsdoc-toolkit/main.js -t JSON js/src.js
+// Output to a different destination
+//     $ bin/ringo apps/jsdoc-toolkit/main.js -d mydocs js/src.js
+// Run unit tests and quit
+//     $ bin/ringo apps/jsdoc-toolkit/main.js -T
 
 include('ringo/engine'); // for addRepository
 include('ringo/shell');
@@ -11,20 +14,30 @@ include('ringo/file');
 
 addRepository('apps/jsdoc-toolkit/modules/');
 include('jsdoc/common');
+include('jsdoc/parse');
+include('jsdoc/publish');
 
-function getArgs(argv, defaults) {
+function getArgs(argv) {
 	var	args = {},
-		parser = new (require('ringo/args').Parser);
+		parser = new (require('ringo/args').Parser),
+		defaults = {
+			destination: 'out/',
+			template: 'JSON'
+		};
 	
-	argv = Array.slice(argv);
-	defaults = defaults || {};
-		
+	args.main = argv[0]; // path to this script, main.js
+	argv = Array.slice(argv, 1);
+	
 	parser.addOption('t', 'template', 'TEMPLATE', 'The path to the template folder.');
+	parser.addOption('T', 'test', null, 'Run unit tests.');
 	parser.addOption('d', 'destination', 'DESTINATION', 'The path to output folder.');
 	parser.addOption('h', 'help', null, 'Print help message and exit');
 	
-	args.cmd = argv.shift(),
+	// parser removes options from argv
 	args.options = parser.parse(argv, defaults);
+	
+	// what's left is the source file. TODO: support file glob
+	args.options.src = argv[0];
 	
 	return args;
 }
@@ -37,12 +50,18 @@ function usage() {
     quit();
 }
 
-var options = getArgs(arguments, defaults).options;
+var options = getArgs(arguments).options;
 
 if (options.help) { usage(); }
 
-if (! options.template) {
-	die('Missing value for required option "template".');
+if (options.test) {
+	addRepository('apps/jsdoc-toolkit/');
+	include('test/jsdoc/all');
+	quit();
+}
+
+if (!options.src) {
+	die('Missing required value for code source to parse.');
 }
 
 if (!options.destination) {
@@ -52,18 +71,23 @@ else {
 	options.destination = new File(options.destination);
 }
 
-var templateFile = new File(options.template),
-	templateSrc,
-	template;
-
-if (! templateFile.exists() || ! templateFile.canRead()) {
-	die( 'Could not find or read template file at that location: ' + templateFile.getAbsolutePath() );
+if (!options.template || options.template === 'JSON') {
+	template = options.template;
 }
 else {
-	templateSrc = templateFile.readAll();
+	var templateFile = new File(options.template),
+		templateSrc,
+		template;
+		
+	try {
+		templateSrc = templateFile.readAll();
+	}
+	catch(e) {
+		die( 'Could not find or read template file at that location: ' + templateFile.getAbsolutePath() );
+	}
+	
+	template = require('normal/normal-template').compile(templateSrc);
 }
 
-var symbols = require('jsdoc/parse').parse(options.src);
-
-template = require('normal/normal-template').compile(templateSrc);
-require('jsdoc/publish').render(template, symbols, options.destination);
+var symbolSet = parse(options.src);
+render(template, symbolSet, options.destination);
