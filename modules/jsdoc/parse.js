@@ -1,61 +1,120 @@
 export('parse');
 
-include('ringo/file');
+include('ringo/jsdoc');
 include('jsdoc/common');
 
-function parse(src) {
-	var dummyData = { // TODO: this will be generated from source code
-		project: {
-			name: "Shapely",
-			description: "A collection of tools for working with shapes."
-		},
-		classes: [
-			{
-				name: "Shape",
-				attributes: ["abstract"],
-				properties: [
-					{
-						name: "Shape#sides",
-						type: "number",
-						access: ["read"]
-					}
-				]
-			},
-			{
-				name: "Circle", 
-				properties: [
-					{
-						name: "Circle#radius",
-						type: "number",
-						access: ["read"]
-					},
-					{
-						name: "Circle#sides",
-						from: "Shape#sides"
-					}
-				]
-			},
-			{
-				name: "Square",
-				properties: [
-					{
-						name: "Square#width",
-						type: "number",
-						access: ["read", "write"]
-					},
-					{
-						name: "Square#height",
-						type: "number",
-						access: ["read", "write"]
-					},
-					{
-						name: "Circle#sides",
-						from: "Shape#sides"
-					}
-				]
-			}
-		]
-	};
+require('core/string');
+require('core/array');
+include('core/json');
+include('ringo/file');
+include('ringo/fileutils');
+include('ringo/parser');
+importPackage(org.mozilla.javascript);
+importPackage(org.ringojs.repository);
+
+function parse(root, src) {
+	var data = [],
+		repo,
+		script,
+		docs,
+		symbols;
 	
-	return dummyData;
+	if (arguments.length === 1) {
+		var parts = root.split(separator);
+		src = parts.pop();
+		root = parts.join(separator);
+	}
+
+	repo = new ScriptRepository(root);
+	script = repo.getScriptResource(src);
+	
+	try {
+		docs = getJsDocComments(script);
+	}
+	catch(e) {
+		die('Could not get JsDoc comments from file ' + root + separator + src);
+	}
+	
+	symbols = new SymbolSet(toSymbols(docs));
+
+	return symbols;
+}
+
+function getJsDocComments(resource) {
+		var comments = [];
+		
+		visitScriptResource(resource, function(node) {
+				// loop through all comments looking for dangling jsdocs
+				if (node.type == Token.SCRIPT && node.comments) {
+						for each (var comment in node.comments.toArray()) {
+								if (comment.commentType == Token.CommentType.JSDOC) {
+									 comments.push(comment.value);
+								}
+						}
+				}
+				return true;
+		});
+
+		return comments;
+};
+
+function Symbol(alias, name, description, memberOf, isa) {
+	this.alias = alias;
+	this.name = name;
+	this.description = description;
+	this.memberOf = memberOf;
+	this.isa = isa;
+}
+
+function SymbolSet(symbols) {
+	this.symbols = symbols;
+}
+
+SymbolSet.prototype.toJSON = function() {
+	var symbol,
+		jsonRoot = [];
+	
+	for (var i = 0, leni = this.symbols.length; i < leni; i++) {
+		symbol = this.symbols[i];
+		jsonRoot.push({
+			alias: symbol.alias,
+			name: symbol.name,
+			description: symbol.description,
+			memberOf: symbol.memberOf,
+			isa: symbol.isa
+		});
+	}
+	
+	return JSON.stringify(jsonRoot);
+}
+
+function toSymbols(docs) {
+	var doc,
+		o,
+		symbols = [];
+	
+	for (var i = 0, leni = docs.length; i < leni; i++) {
+		doc = unwrapComment(docs[i]);
+		
+		if (doc.charAt(0) === '{') { // starts with "{", treat as JSON
+			try {
+				o = JSON.parse(doc);
+			}
+			catch (e) {
+				die("Could not parse JSON in doc comment:\n"+doc);
+			}
+			symbols.push( new Symbol(o.alias, o.name, o.description, o.memberOf, o.isa) );
+		}
+	}
+	
+	return symbols;
+}
+
+/**
+	Remove jsdoc comment start and end. Trim white space.
+	@private
+	@name unwrapComment
+ */
+function unwrapComment(comment) {
+	return comment ? comment.replace(/(^\/\*\*\s*|\s*\*\/$)/g, "").replace(/^\s*\* ?/gm, "") : "";
 }

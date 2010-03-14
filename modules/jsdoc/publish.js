@@ -3,9 +3,11 @@ export('render');
 include('ringo/file');
 include('jsdoc/common');
 
-function render(template, data, destination) {
-	var output = template(data);
-
+function render(template, symbolSet, destination) {
+	var output,
+		outputFile,
+		ext;
+		
 	if (!destination.exists() && !destination.makeDirectory()) {
 		die( 'Could not create that destination directory: ' + destination.getAbsolutePath() );
 	}
@@ -14,7 +16,17 @@ function render(template, data, destination) {
 		die( 'Could not write to that destination directory: ' + destination.getAbsolutePath() );
 	}
 
-	var outputFile = new File(destination.getAbsolutePath() + '/classes.html');
+	if (typeof template === 'string' && template === 'JSON') {
+		output = symbolSet.toJSON();
+		ext = 'json';
+	}
+	else {
+		// TODO: prepare class data for template from the given symbolSet
+		output = template({classes: symbolSet.symbols});
+		ext = 'html';
+	}
+	
+	outputFile = new File(destination.getAbsolutePath() + '/classes.'+ext);
 	
 	if (outputFile.exists()) {
 		if (!outputFile.remove()) {
