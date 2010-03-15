@@ -4,7 +4,7 @@ include('jsdoc/parse')
 exports.setUp = exports.tearDown = function() {}
 
 exports.testParseJson = function () {
-	var symbolSet = parse('apps/jsdoc-toolkit/test/data/', 'shapely.json.js');
+	var symbolSet = parseDocs('apps/jsdoc-toolkit/test/data/', 'shapely.json.js');
 	
 	// can find all doc comments
 	assertEqual(8, symbolSet.symbols.length);

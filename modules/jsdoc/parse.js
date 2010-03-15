@@ -1,4 +1,4 @@
-export('parse');
+export('parseDocs');
 
 include('ringo/jsdoc');
 include('jsdoc/common');
@@ -12,7 +12,7 @@ include('ringo/parser');
 importPackage(org.mozilla.javascript);
 importPackage(org.ringojs.repository);
 
-function parse(root, src) {
+function parseDocs(root, src) {
 	var data = [],
 		repo,
 		script,
@@ -58,8 +58,8 @@ function getJsDocComments(resource) {
 		return comments;
 };
 
-function Symbol(alias, name, description, memberOf, isa) {
-	this.alias = alias;
+function Symbol(shortName, name, description, memberOf, isa) {
+	this.shortName = shortName;
 	this.name = name;
 	this.description = description;
 	this.memberOf = memberOf;
@@ -77,7 +77,7 @@ SymbolSet.prototype.toJSON = function() {
 	for (var i = 0, leni = this.symbols.length; i < leni; i++) {
 		symbol = this.symbols[i];
 		jsonRoot.push({
-			alias: symbol.alias,
+			shortName: symbol.shortName,
 			name: symbol.name,
 			description: symbol.description,
 			memberOf: symbol.memberOf,
@@ -86,6 +86,20 @@ SymbolSet.prototype.toJSON = function() {
 	}
 	
 	return JSON.stringify(jsonRoot);
+}
+
+SymbolSet.prototype.getSymbolByName = function(name) {
+	for (var i = 0, leni = this.symbols.length; i < leni; i++) {
+		symbol = this.symbols[i];
+		if (name === symbol.name) { return symbol; }
+	}
+}
+
+SymbolSet.prototype.getSymbolByParentName = function(name) {
+	for (var i = 0, leni = this.symbols.length; i < leni; i++) {
+		symbol = this.symbols[i];
+		if (name === symbol.memberOf) { return symbol; }
+	}
 }
 
 function toSymbols(docs) {
@@ -103,7 +117,7 @@ function toSymbols(docs) {
 			catch (e) {
 				die("Could not parse JSON in doc comment:\n"+doc);
 			}
-			symbols.push( new Symbol(o.alias, o.name, o.description, o.memberOf, o.isa) );
+			symbols.push( new Symbol(o.shortName, o.name, o.description, o.memberOf, o.isa) );
 		}
 	}
 	

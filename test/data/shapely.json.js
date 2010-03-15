@@ -1,7 +1,7 @@
 /**
 	{
 		"name": "shapely",
-		"alias": "shapely",
+		"shortName": "shapely",
 		"description": "",
 		"isa": "namespace",
 		"memberOf": "",
@@ -12,7 +12,7 @@ var shapely = {};
 
 /**{
 	"name": "shapely.Shape",
-	"alias": "Shape",
+	"shortName": "Shape",
 	"description": "A base class for all shapes.",
 	"isa": "constructor",
 	"memberOf": "shapely",
@@ -30,7 +30,7 @@ var shapely = {};
 shapely.Shape = function(sides) {
 	/**{
 		"name": "shapely.Shape#sides",
-		"alias": "sides",
+		"shortName": "sides",
 		"description": "",
 		"isa": "property",
 		"memberOf": "shapely.Shape#",
@@ -42,7 +42,7 @@ shapely.Shape = function(sides) {
 
 /**{
 	"name": "shapely.Circle",
-	"alias": "Circle",
+	"shortName": "Circle",
 	"description": "", 
 	"isa": "constructor",
 	"memberOf": "shapely",
@@ -62,7 +62,7 @@ shapely.Circle = function(radius) {
 	
 	/**{
 		"name": "shapely.Circle#sides",
-		"alias": "sides",
+		"shortName": "sides",
 		"description": "",
 		"isa": "property",
 		"memberOf": "shapely.Circle#",
@@ -72,7 +72,7 @@ shapely.Circle = function(radius) {
 	
 	/**{
 		"name": "shapely.Circle#radius",
-		"alias": "radius",
+		"shortName": "radius",
 		"description": "",
 		"isa": "property",
 		"memberOf": "shapely.Circle#",
@@ -83,7 +83,7 @@ shapely.Circle = function(radius) {
 
 /**{
 	"name": "shapely.Circle#setDiameter",
-	"alias": "setDiameter",
+	"shortName": "setDiameter",
 	"description": "Set the diameter of this circle.",
 	"isa": "method",
 	"memberOf": "shapely.Circle#",
@@ -104,7 +104,7 @@ shapely.Circle.prototype.setDiameter = function(diameter) {
 
 /**{
 	"name": "shapely.Circle#getDiameter",
-	"alias": "getDiameter",
+	"shortName": "getDiameter",
 	"description": "",
 	"isa": "method",
 	"memberOf": "shapely.Circle#",

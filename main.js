@@ -1,28 +1,30 @@
 // USAGE:
 // Parse js/src.js for JSON doc comments, output as JSON to default folder: out
-//     $ bin/ringo apps/jsdoc-toolkit/main.js js/src.js
-// Set output format explicitlty to JSON
 //     $ bin/ringo apps/jsdoc-toolkit/main.js -t JSON js/src.js
+// Use the default template to format output
+//     $ bin/ringo apps/jsdoc-toolkit/main.js js/src.js
+// Use the default template explicitly
+//     $ bin/ringo apps/jsdoc-toolkit/main.js -t default js/src.js
 // Output to a different destination
 //     $ bin/ringo apps/jsdoc-toolkit/main.js -d mydocs js/src.js
 // Run unit tests and quit
 //     $ bin/ringo apps/jsdoc-toolkit/main.js -T
 
-include('ringo/engine'); // for addRepository
+include('ringo/engine');
 include('ringo/shell');
 include('ringo/file');
 
 addRepository('apps/jsdoc-toolkit/modules/');
 include('jsdoc/common');
 include('jsdoc/parse');
-include('jsdoc/publish');
+include('jsdoc/output');
 
 function getArgs(argv) {
 	var	args = {},
 		parser = new (require('ringo/args').Parser),
 		defaults = {
 			destination: 'out/',
-			template: 'JSON'
+			template: 'default'
 		};
 	
 	args.main = argv[0]; // path to this script, main.js
@@ -42,17 +44,15 @@ function getArgs(argv) {
 	return args;
 }
 
-function usage() {
-    print('Usage:');
+var options = getArgs(arguments).options;
+
+if (options.help) {
+	print('Usage:');
     print('', cmd, '[OPTIONS]', '[PATH]');
     print('Options:');
     print(parser.help());
     quit();
 }
-
-var options = getArgs(arguments).options;
-
-if (options.help) { usage(); }
 
 if (options.test) {
 	addRepository('apps/jsdoc-toolkit/');
@@ -64,30 +64,6 @@ if (!options.src) {
 	die('Missing required value for code source to parse.');
 }
 
-if (!options.destination) {
-	die('Missing value for required option "destination".');
-}
-else {
-	options.destination = new File(options.destination);
-}
+var symbolSet = parseDocs(options.src);
 
-if (!options.template || options.template === 'JSON') {
-	template = options.template;
-}
-else {
-	var templateFile = new File(options.template),
-		templateSrc,
-		template;
-		
-	try {
-		templateSrc = templateFile.readAll();
-	}
-	catch(e) {
-		die( 'Could not find or read template file at that location: ' + templateFile.getAbsolutePath() );
-	}
-	
-	template = require('normal/normal-template').compile(templateSrc);
-}
-
-var symbolSet = parse(options.src);
-render(template, symbolSet, options.destination);
+outputDocs(options.template, symbolSet, options.destination);
