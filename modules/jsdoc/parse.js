@@ -41,21 +41,21 @@ function parseDocs(root, src) {
 }
 
 function getJsDocComments(resource) {
-		var comments = [];
-		
-		visitScriptResource(resource, function(node) {
-				// loop through all comments looking for dangling jsdocs
-				if (node.type == Token.SCRIPT && node.comments) {
-						for each (var comment in node.comments.toArray()) {
-								if (comment.commentType == Token.CommentType.JSDOC) {
-									 comments.push(comment.value);
-								}
-						}
+	var comments = [];
+	
+	visitScriptResource(resource, function(node) {
+		// loop through all comments looking for dangling jsdocs
+		if (node.type == Token.SCRIPT && node.comments) {
+			for each (var comment in node.comments.toArray()) {
+				if (comment.commentType == Token.CommentType.JSDOC) {
+					comments.push(comment.value);
 				}
-				return true;
-		});
+			}
+		}
+		return true;
+	});
 
-		return comments;
+	return comments;
 };
 
 function Symbol(shortName, name, description, memberOf, isa) {
