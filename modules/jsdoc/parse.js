@@ -58,11 +58,11 @@ function getJsDocComments(resource) {
 	return comments;
 };
 
-function Symbol(shortName, name, description, memberOf, isa) {
-	this.shortName = shortName;
+function Symbol(shortname, name, description, memberof, isa) {
+	this.shortname = shortname;
 	this.name = name;
 	this.description = description;
-	this.memberOf = memberOf;
+	this.memberof = memberof;
 	this.isa = isa;
 }
 
@@ -72,20 +72,20 @@ function SymbolSet(symbols) {
 
 SymbolSet.prototype.toJSON = function() {
 	var symbol,
-		jsonRoot = [];
+		json = [];
 	
 	for (var i = 0, leni = this.symbols.length; i < leni; i++) {
 		symbol = this.symbols[i];
-		jsonRoot.push({
-			shortName: symbol.shortName,
+		json.push({
+			shortname: symbol.shortname,
 			name: symbol.name,
 			description: symbol.description,
-			memberOf: symbol.memberOf,
+			memberof: symbol.memberof,
 			isa: symbol.isa
 		});
 	}
 	
-	return JSON.stringify(jsonRoot);
+	return JSON.stringify(json);
 }
 
 SymbolSet.prototype.getSymbolByName = function(name) {
@@ -95,13 +95,16 @@ SymbolSet.prototype.getSymbolByName = function(name) {
 	}
 }
 
-SymbolSet.prototype.getSymbolByParentName = function(name) {
-	for (var i = 0, leni = this.symbols.length; i < leni; i++) {
-		symbol = this.symbols[i];
-		if (name === symbol.memberOf) { return symbol; }
-	}
-}
+// SymbolSet.prototype.getSymbolByParentName = function(name) {
+// 	for (var i = 0, leni = this.symbols.length; i < leni; i++) {
+// 		symbol = this.symbols[i];
+// 		if (name === symbol.memberof) { return symbol; }
+// 	}
+// }
 
+/**
+	Turn comment texts into symbols.
+ */
 function toSymbols(docs) {
 	var doc,
 		o,
@@ -117,11 +120,114 @@ function toSymbols(docs) {
 			catch (e) {
 				die("Could not parse JSON in doc comment:\n"+doc);
 			}
-			symbols.push( new Symbol(o.shortName, o.name, o.description, o.memberOf, o.isa) );
+			symbols.push( new Symbol(o.shortname, o.name, o.description, o.memberof, o.isa) );
+		}
+		else {
+			o = Tag.parse(doc);
+			symbols.push( new Symbol(o.shortname, o.name, o.description, o.memberof, o.isa) );
 		}
 	}
 	
 	return symbols;
+}
+
+var Tag = function(title, body) {
+	this.title = title.toLowerCase();
+	this.body = body;
+}
+
+Tag.parse = function(doc) {
+	var tags = [],
+		o = {};
+	
+	doc
+	.split(/(^|[\r\n])\s*@/)
+	.filter( function($){ return $.match(/\S/); } )
+	.forEach(function($) {
+		var title,
+			body,
+			parts = $.match(/^(\S+)(?:\s([\s\S]*))?$/);
+
+		if (parts) {
+			title = (parts[1] || '');
+			body = parts[2] || '';
+			
+			tags.push( new Tag(title, body) );
+		}
+	
+	});
+	
+	tags.forEach(function($) {
+		switch ($.title) {
+			case 'name':
+				o.name = $.body;
+				o.name = o.name.replace(/\.prototype\b/g, '#');
+			break;
+			case 'memberof':
+				o.memberof = $.body;
+				o.memberof = o.memberof.replace(/\.prototype\b/g, '#');
+				o.shortname = o.name;
+				o.name = (/.#$/.test(o.memberof)? o.memberof : o.memberof + '.') + o.name;
+			break;
+			case 'namespace':
+				o.isa = 'namespace';
+				if ($.body) { o.name = $.body; }
+			break;
+			case 'constructor':
+				o.isa = 'constructor';
+				if ($.body) { o.name = $.body; }
+			break;
+			case 'method':
+				o.isa = 'method';
+				if ($.body) { o.name = $.body; }
+			break;
+			case 'property':
+				if (!o.isa) {
+					o.isa = 'property';
+					if ($.body) { o.name = $.body; }
+				}
+			break;
+			case 'description':
+			case 'desc':
+				o.description = $.body;
+			break;
+		}
+	});
+	
+//	o.tags = tags;
+	return o;
+}
+
+Tag.prototype = {
+	get type() {
+		if (!this._type) { this._type = parseType(this.body); }
+		return this._type;
+	}
+};
+
+function parseType(body) {
+	// extract characters between ^{ and matching }
+	var nestCounter = 1,
+		start = 1,
+		end = null;
+	
+	if (!/^\{/.test(body)) {
+		return '';
+	}
+	
+	for (var i = 1, leni = body.length; i < leni; i++) {
+		if (body.charAt(i) === '{') {
+			nestCounter++;
+		}
+		else if (body.charAt(i) === '}') {
+			nestCounter--;
+		}
+		
+		if (nestCounter === 0) {
+			end = i;
+			return body.slice(start, stop);
+		}
+	}
 }
 
 /**
