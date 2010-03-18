@@ -95,13 +95,6 @@ SymbolSet.prototype.getSymbolByName = function(name) {
 	}
 }
 
-// SymbolSet.prototype.getSymbolByParentName = function(name) {
-// 	for (var i = 0, leni = this.symbols.length; i < leni; i++) {
-// 		symbol = this.symbols[i];
-// 		if (name === symbol.memberof) { return symbol; }
-// 	}
-// }
-
 /**
 	Turn comment texts into symbols.
  */
@@ -140,23 +133,26 @@ Tag.parse = function(doc) {
 	var tags = [],
 		o = {};
 	
+	// split out the basic tags
 	doc
 	.split(/(^|[\r\n])\s*@/)
 	.filter( function($){ return $.match(/\S/); } )
 	.forEach(function($) {
+		// tags are like: @title body...
 		var title,
 			body,
-			parts = $.match(/^(\S+)(?:\s([\s\S]*))?$/);
+			bits = $.match(/^(\S+)(?:\s([\s\S]*))?$/);
 
-		if (parts) {
-			title = (parts[1] || '');
-			body = parts[2] || '';
+		if (bits) {
+			title = bits[1] || '';
+			body = bits[2] || '';
 			
-			tags.push( new Tag(title, body) );
+			if (title) { tags.push( new Tag(title, body) ); }
 		}
 	
 	});
 	
+	// clean up, fill in any implied information, validate
 	tags.forEach(function($) {
 		switch ($.title) {
 			case 'name':
@@ -194,7 +190,9 @@ Tag.parse = function(doc) {
 		}
 	});
 	
-//	o.tags = tags;
+	// TODO: keep a reference to any/all tags, so can be used in template later
+	// o.tags = tags;
+	
 	return o;
 }
 
