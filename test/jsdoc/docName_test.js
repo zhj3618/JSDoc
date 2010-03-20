@@ -117,3 +117,63 @@ exports.testLongname = function () {
 		docName('foo#bar.baz')
 	);
 };
+
+exports.testStrangename = function () {
+	assertEqual(
+		{
+			name: '$f **.b@^1#b@z=',
+			memberof: '$f **.b@^1#',
+			shortname: 'b@z=',
+			isinner: false,
+			isstatic: false
+		},
+		docName('$f **.b@^1#b@z=')
+	);
+	
+	// use double quotes to surround names that contain
+	// special characters
+	assertEqual(
+		{
+			name: '"f##"#bar',
+			memberof: '"f##"#',
+			shortname: 'bar',
+			isinner: false,
+			isstatic: false
+		},
+		docName('"f##"#bar')
+	);
+	
+	// escape double quotes if they are not intended to quote a name
+	assertEqual(
+		{
+			name: 'one.two.th\"ree\"',
+			memberof: 'one.two',
+			shortname: 'th\"ree\"',
+			isinner: false,
+			isstatic: true
+		},
+		docName('one.two.th\"ree\"')
+	);
+	
+	assertEqual(
+		{
+			name: '"f##"#"\"b#r,\" she said."',
+			memberof: '"f##"#',
+			shortname: '"\"b#r,\" she said."',
+			isinner: false,
+			isstatic: false
+		},
+		docName('"f##"#"\"b#r,\" she said."')
+	);
+	
+	assertEqual(
+		{
+			name: 'one."two.three"',
+			memberof: 'one',
+			shortname: '"two.three"',
+			isinner: false,
+			isstatic: true
+		},
+		docName('one."two.three"')
+	);
+};

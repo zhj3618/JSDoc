@@ -22,7 +22,12 @@ function divide(name, opts) {
 		shortname: name
 	};
 	
-	if ( /^(.+)([#.-])([^#.-]+)$/.test(name) ) {
+	if (
+		/^(.+)([#.-])("(\"|[^"])+")$/.test(name) // like one#"two#three"
+		||
+		/^(.+)([#.-])([^#.-]+)$/.test(name) // like one#two
+	) {
+
 		parts.connector = RegExp.$2;
 		parts.memberof = RegExp.$1;
 		parts.shortname = RegExp.$3;
