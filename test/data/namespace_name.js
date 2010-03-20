@@ -27,14 +27,11 @@
 		//   @namespace
 	}
 	
-	/** @namespace */
-	ns3 = {
-		// rely on the parser to find the full name for you
-		// not guaranteed to work
-		
+	/** @namespace ns2.ns3 */
+	ns2.ns3 = {
 		/**
 			@namespace ns4
-			@memberof ns3
+			@memberof ns2.ns3
 			@desc A description.
 		 */
 		ns4: {

@@ -2,6 +2,7 @@ export('parseDocs');
 
 include('ringo/jsdoc');
 include('jsdoc/common');
+include('jsdoc/docName');
 
 require('core/string');
 require('core/array');
@@ -124,9 +125,9 @@ function toSymbols(docs) {
 	return symbols;
 }
 
-var Tag = function(title, body) {
+var Tag = function(title, text) {
 	this.title = title.toLowerCase();
-	this.body = body;
+	this.text = text;
 }
 
 Tag.parse = function(doc) {
@@ -138,16 +139,16 @@ Tag.parse = function(doc) {
 	.split(/(^|[\r\n])\s*@/)
 	.filter( function($){ return $.match(/\S/); } )
 	.forEach(function($) {
-		// tags are like: @title body...
+		// tags are like: @title text...
 		var title,
-			body,
+			text,
 			bits = $.match(/^(\S+)(?:\s([\s\S]*))?$/);
 
 		if (bits) {
 			title = bits[1] || '';
-			body = bits[2] || '';
+			text = bits[2] || '';
 			
-			if (title) { tags.push( new Tag(title, body) ); }
+			if (title) { tags.push( new Tag(title, text) ); }
 		}
 	
 	});
@@ -156,39 +157,47 @@ Tag.parse = function(doc) {
 	tags.forEach(function($) {
 		switch ($.title) {
 			case 'name':
-				o.name = $.body;
+				o.name = $.text;
 				o.name = o.name.replace(/\.prototype\b/g, '#');
 			break;
 			case 'memberof':
-				o.memberof = $.body;
+				o.memberof = $.text;
 				o.memberof = o.memberof.replace(/\.prototype\b/g, '#');
-				o.shortname = o.name;
-				o.name = (/.#$/.test(o.memberof)? o.memberof : o.memberof + '.') + o.name;
 			break;
 			case 'namespace':
 				o.isa = 'namespace';
-				if ($.body) { o.name = $.body; }
+				if ($.text) { o.name = $.text; }
 			break;
 			case 'constructor':
 				o.isa = 'constructor';
-				if ($.body) { o.name = $.body; }
+				if ($.text) { o.name = $.text; }
+			break;
+			case 'methodof':
+				o.isa = 'method';
+				if ($.text) { o.memberof = $.text; }
 			break;
 			case 'method':
 				o.isa = 'method';
-				if ($.body) { o.name = $.body; }
+				if ($.text) { o.name = $.text; }
+			break;
+			case 'propertyof':
+				o.isa = 'property';
+				if ($.text) { o.memberof = $.text; }
 			break;
 			case 'property':
 				if (!o.isa) {
 					o.isa = 'property';
-					if ($.body) { o.name = $.body; }
+					if ($.text) { o.name = $.text; }
 				}
 			break;
 			case 'description':
 			case 'desc':
-				o.description = $.body;
+				o.description = $.text;
 			break;
 		}
 	});
+	
+	handleName(tags, o);
 	
 	// TODO: keep a reference to any/all tags, so can be used in template later
 	// o.tags = tags;
@@ -198,32 +207,32 @@ Tag.parse = function(doc) {
 
 Tag.prototype = {
 	get type() {
-		if (!this._type) { this._type = parseType(this.body); }
+		if (!this._type) { this._type = parseType(this.text); }
 		return this._type;
 	}
 };
 
-function parseType(body) {
+function parseType(text) {
 	// extract characters between ^{ and matching }
 	var nestCounter = 1,
 		start = 1,
 		end = null;
 	
-	if (!/^\{/.test(body)) {
+	if (!/^\{/.test(text)) {
 		return '';
 	}
 	
-	for (var i = 1, leni = body.length; i < leni; i++) {
-		if (body.charAt(i) === '{') {
+	for (var i = 1, leni = text.length; i < leni; i++) {
+		if (text.charAt(i) === '{') {
 			nestCounter++;
 		}
-		else if (body.charAt(i) === '}') {
+		else if (text.charAt(i) === '}') {
 			nestCounter--;
 		}
 		
 		if (nestCounter === 0) {
 			end = i;
-			return body.slice(start, stop);
+			return text.slice(start, stop);
 		}
 	}
 }
@@ -235,4 +244,31 @@ function parseType(body) {
  */
 function unwrapComment(comment) {
 	return comment ? comment.replace(/(^\/\*\*\s*|\s*\*\/$)/g, "").replace(/^\s*\* ?/gm, "") : "";
+}
+
+function getTag(tags, title) {
+	var tag;
+	for (var i = 0, leni = tags.length; i < leni; i++) {
+		tag = tags[i];
+		if (tag.title == title) {
+			return trim(tag.text);
+		}
+	};
+	return null;
+}
+
+function handleName(tags, doc) {
+	var nameTag = doc.name || getTag(tags, 'name'),
+		memberofTag = doc.memberof || getTag(tags, 'memberof'),
+		isinnerTag = doc.isinner || getTag(tags, 'inner') !== null,
+		isstaticTag = doc.isstatic || getTag(tags, 'static') !== null,
+		name;
+
+ 		name = docName(nameTag, memberofTag, {isstatic: isstaticTag, isinner: isinnerTag});
+		
+		doc.name = name.name;
+		doc.shortname = name.shortname;
+		doc.memberof = name.memberof;
+		doc.isstatic = name.isstatic;
+		doc.isinner = name.isinner;
 }

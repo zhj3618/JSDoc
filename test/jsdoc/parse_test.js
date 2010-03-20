@@ -28,8 +28,9 @@ exports.testParseTagsNamespace = function () {
 	assertEqual('ns2', symbolSet.symbols[1].name);
 	assertEqual('namespace', symbolSet.symbols[1].isa);
 	
-// TODO: find name from code
+	assertEqual('ns2.ns3', symbolSet.symbols[2].name);
+	assertEqual('namespace', symbolSet.symbols[2].isa);
 	
-	assertEqual('ns3.ns4', symbolSet.symbols[3].name);
+	assertEqual('ns2.ns3.ns4', symbolSet.symbols[3].name);
 	assertEqual('A description.', symbolSet.symbols[3].description);
 }
