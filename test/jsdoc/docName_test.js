@@ -134,6 +134,17 @@ exports.testStrangename = function () {
 	// special characters
 	assertEqual(
 		{
+			name: '"f.oo"',
+			memberof: '',
+			shortname: '"f.oo"',
+			isinner: false,
+			isstatic: false
+		},
+		docName('"f.oo"')
+	);
+	
+	assertEqual(
+		{
 			name: '"f##"#bar',
 			memberof: '"f##"#',
 			shortname: 'bar',
@@ -141,6 +152,28 @@ exports.testStrangename = function () {
 			isstatic: false
 		},
 		docName('"f##"#bar')
+	);
+	
+	assertEqual(
+		{
+			name: '"f.#.#"."b#r"#"b.z"',
+			memberof: '"f.#.#"."b#r"#',
+			shortname: '"b.z"',
+			isinner: false,
+			isstatic: false
+		},
+		docName('"f.#.#"."b#r"#"b.z"')
+	);
+	
+	assertEqual(
+		{
+			name: 'one."two.three"',
+			memberof: 'one',
+			shortname: '"two.three"',
+			isinner: false,
+			isstatic: true
+		},
+		docName('one."two.three"')
 	);
 	
 	// escape double quotes if they are not intended to quote a name
@@ -164,16 +197,5 @@ exports.testStrangename = function () {
 			isstatic: false
 		},
 		docName('"f##"#"\"b#r,\" she said."')
-	);
-	
-	assertEqual(
-		{
-			name: 'one."two.three"',
-			memberof: 'one',
-			shortname: '"two.three"',
-			isinner: false,
-			isstatic: true
-		},
-		docName('one."two.three"')
 	);
 };

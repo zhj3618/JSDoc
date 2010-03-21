@@ -23,14 +23,14 @@ function divide(name, opts) {
 	};
 	
 	if (
-		/^(.+)([#.-])("(\"|[^"])+")$/.test(name) // like one#"two#three"
+		/^(?:(.+)([#.-]))?("(\"|[^"])+")$/.test(name) // like one#"two#three"
 		||
 		/^(.+)([#.-])([^#.-]+)$/.test(name) // like one#two
 	) {
 
 		parts.connector = RegExp.$2;
 		parts.memberof = RegExp.$1;
-		parts.shortname = RegExp.$3;
+		parts.shortname = RegExp.$3 || name;
 		
 		parts.name = name;
 		parts.memberof += (parts.connector === '#'? '#' : '');
@@ -42,9 +42,15 @@ function divide(name, opts) {
 	return parts;
 }
 
-function docName(name, memberof, opts) {
-	if (!name) { throw new Error('Missing required value for @name.'); }
-	opts = opts || {};
+/**
+	Determine what the various name related values are from the tags present.
+ */
+function docName(name, memberof, props) {
+	if (!name) {
+		throw new Error('Missing required value for @name.');
+	}
+	
+	props = props || {};
 	
 	var result = {
 		name: '',
@@ -53,20 +59,25 @@ function docName(name, memberof, opts) {
 	};
 	
 	if (memberof) {
+		// fix this
+		if (name.indexOf('this.') === 0) {
+			name = name.replace('this.', '');
+		}
+		
 		result.memberof = memberof;
 		result.shortname = name;
-		result.name = connect(result.shortname, result.memberof, opts);
+		result.name = connect(result.shortname, result.memberof, props);
 	}
 	else {
-		var parts = divide(name, opts);
+		var parts = divide(name, props);
 		
 		result.memberof = parts.memberof;
 		result.shortname = parts.shortname;
 		result.name = parts.name;
 	}
 	
-	result.isinner = opts.isinner || false;
-	result.isstatic = opts.isstatic || false;
+	result.isinner = props.isinner || false;
+	result.isstatic = props.isstatic || false;
 	
 	return result;
 }
