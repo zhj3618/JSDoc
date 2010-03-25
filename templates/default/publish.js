@@ -25,14 +25,17 @@ function publish(/**SymbolSet*/symbolSet, /**File*/destination) {
 	});
 		
 	allClasses.forEach(function(classSymbol) {
+		var instance = classSymbol.name + '#';
+		
 		classSymbol.methods = symbolSet.symbols.filter(function(symbol) {
-			return symbol.memberOf === classSymbol.name + '#' && symbol.isa === 'method';
+			return symbol.memberof === instance && symbol.isa === 'method';
 		});
 		
 		classSymbol.properties = symbolSet.symbols.filter(function(symbol) {
-			return symbol.memberOf === classSymbol.name + '#' && symbol.isa === 'property';
+			return symbol.memberof === instance && symbol.isa === 'property';
 		});
 	});
+	
 	
 	// pass classes to the template
 	var output = template({classes: allClasses});
