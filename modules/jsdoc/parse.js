@@ -4,17 +4,12 @@ include('ringo/jsdoc');
 include('jsdoc/common');
 include('jsdoc/docName');
 
-require('core/string');
-require('core/array');
-include('core/json');
-include('ringo/file');
 include('ringo/fileutils');
 include('ringo/parser');
-importPackage(org.mozilla.javascript);
-importPackage(org.ringojs.repository);
 
 /**
 	Scan source file for documented symbols.
+	@function parseDocs
  */
 function parseDocs(root, src) {
 	var repo,
@@ -40,6 +35,8 @@ function parseDocs(root, src) {
 
 /**
 	Name was found in the code, may need some clean up, then add new tag.
+	@private
+	@function addName
  */
 function addName(name, tagSet) {
 	// clean up code name, to look like JsDoc name
@@ -55,7 +52,9 @@ function addName(name, tagSet) {
 }
 
 /**
-	Information like the line number and filename.
+	Add in information like the line number and filename.
+	@private
+	@function addMeta
  */
 function addMeta(node, tagSet) {
 	var lineno;
@@ -71,95 +70,182 @@ function addMeta(node, tagSet) {
 }
 
 /**
-	Walk script nodes in a script resource, collect tag data.
+	What does `this` mean in the symbol name?
+	@private
+	@function
+	@param {string} name Possibly starting with `this.`
+	@param {org.mozilla.javascript.ast.AstNode} node The node in question.
+	@param {string} [memberof] If the user provided a @memberof tag, we can use it. 
  */
-function getJsDocCommentTags(resource) {
-	var tagSets = [], // accumulates sets of tags, as they are parsed from the source
-		commentSrc,
-		tags;
-		
+function resolveThis(name, node, memberof) {
+	var enclosingFunction;
 	
-	visitScriptResource(resource, function(node) {
-	
-		//	if (node.type == Token.SCRIPT) { node.getSymbols(); }
-		// print(nodeToString(node));
+	if (name.indexOf('this.') === 0) {
+		if (!memberof) {
+			if (enclosingFunction = node.getEnclosingFunction()) {
+				memberof = enclosingFunction.getName(); // empty string for anonymous functions
+			}
+			
+			if (memberof) {
+				name = memberof + '#' + name.slice(5); // replace this. with foo#
+			}
+			else { // it's an anonymous function
+				memberof = nameFromAnon(enclosingFunction);
+				
+				if (memberof) {
+					name = memberof + '#' + name.slice(5); // replace `this.` with memberof
+				}
+			}
+		}
+		else {
+			name = name.slice(5);
+		}
+	}
+	return name;
+}
 
-		// documented function with no @name tag
-		// like: function foo(){}
-		if (node.type == Token.FUNCTION) {
+/**
+	Keep track of anonymous functions that have been assigned to documented symbols.
+	@private
+	@function nameFromAnon
+	@param {org.mozilla.javascript.ast.AstNode} node
+	@return {string|null} The documented name, if any.
+ */
+function nameFromAnon(node) {
+	var i = anons.length;
+	while (i--) {
+		if (anons[i][0] === node) { return anons[i][1]; }
+	}
+	
+	return null;
+}
+// tuples, like [ [noderef, jsdocName], [noderef, jsdocName] ]
+var anons = [];
+
+/**
+	Called automatically by {@link getJsDocCommentTags}.
+	@private
+	@function walker
+	@param {org.mozilla.javascript.ast.AstNode} node
+ */
+function walker(node) {
+	var commentSrc,
+		tags,
+		name;
+		
+	//	if (node.type == Token.SCRIPT) { node.getSymbols(); }
+	// print(nodeToString(node));
+
+	// documented function with no @name tag
+	// like:
+	//     /** blah. */
+	//     function foo() {
+	//     }
+	if (node.type == Token.FUNCTION) {
+		if (commentSrc = node.jsDoc) {
+			tags = Tag.parse(commentSrc);
+
+			if ( !tags.hasTag('name') ) {
+				name = resolveThis(tags.getTag('alias') || node.name, node, tags.getTag('memberof'));
+				addName(name, tags);
+				addMeta(node, tags);
+				walker.tagSets.push(tags);
+			}
+		}
+	}
+	
+	// documented bare name, assigned to an anonymous function, with no @name tag
+	// like:
+	//     /** blah. */
+	//     foo = function() {
+	//     }
+	if (node.type === Token.ASSIGN) {
+
+		if (node.right.type === Token.FUNCTION) {
 			if (commentSrc = node.jsDoc) {
 				tags = Tag.parse(commentSrc);
 
 				if ( !tags.hasTag('name') ) {
-					addName(node.name, tags);
+					name = resolveThis(tags.getTag('alias') || nodeToString(node.left), node, tags.getTag('memberof'));
+					anons.push([node.right, name]);
+					addName(name, tags);
 					addMeta(node, tags);
-					tagSets.push(tags);
+					walker.tagSets.push(tags);
 				}
 			}
 		}
-		
-		// documented function assignment with no @name tag
-		// like foo = function(){}
-		if (node.type === Token.ASSIGN) {
-
-            if (node.right.type === Token.FUNCTION) {
-            	if (commentSrc = node.jsDoc) {
+	}
+	
+	// documented var declaration(s), assigned to an anonymous function(s), with no @name tag
+	// like:
+	//     /** blah. */
+	//     var foo = function() {
+	//         },
+	//         /** blah. */
+	//         bar = function() {
+	//         }
+	if (node.type == Token.VAR || node.type == Token.LET) {
+		var counter = 0;
+		for each (var n in ScriptableList(node.variables)) {
+			if (n.target.type === Token.NAME && n.initializer && n.initializer.type === Token.FUNCTION) {
+				commentSrc = (counter++ === 0 && !n.jsDoc)? node.jsDoc : n.jsDoc;
+				if (commentSrc) {
 					tags = Tag.parse(commentSrc);
-
 					if ( !tags.hasTag('name') ) {
-						addName(nodeToString(node.left), tags);
-						addMeta(node, tags);
-						tagSets.push(tags);
+						name = resolveThis(tags.getTag('alias') || n.target.string, n.target, tags.getTag('memberof'));
+						anons.push([n.initializer, name]);
+						addName(name, tags);
+						addMeta((node.jsDoc? node : n), tags);
+						walker.tagSets.push(tags);
 					}
-            	}
-            }
-		}
-		
-		// documented var declaration, set to a function with no @name tag
-		// like var foo = function(){}, bar = function(){}
-		if (node.type == Token.VAR || node.type == Token.LET) {
-			var counter = 0;
-			for each (var n in ScriptableList(node.variables)) {
-				if (n.target.type === Token.NAME && n.initializer.type === Token.FUNCTION) {
-					commentSrc = (counter++ === 0 && !n.jsDoc)? node.jsDoc : n.jsDoc;
-					if (commentSrc) {
-						tags = Tag.parse(commentSrc);
-						if ( !tags.hasTag('name') ) {
-							addName(n.target.string, tags);
-							addMeta((node.jsDoc? node : n), tags);
-							tagSets.push(tags);
-						}
-					}
-                }
+				}
 			}
 		}
-		
-		// jsdoc comment with a @name tag
- 		if (node.type == Token.SCRIPT && node.comments) { 			
- 			for each (var comment in node.comments.toArray()) {
- 				if (comment.commentType == Token.CommentType.JSDOC) {
-
- 					commentSrc = '' + comment.toSource();
- 					
- 					if (commentSrc) {
-						tags = Tag.parse(commentSrc);
-						if ( tags.hasTag('name') ) {
-							addMeta(comment, tags);
-							tagSets.push(tags);
-						}
-					}
- 				}
- 			}
- 		}
-
-		return true;
-	});
+	}
 	
-	return tagSets;
+	// jsdoc comment with a @name tag (the easy case!)
+	// like:
+	//     /** @name foo*/
+	//     // whatever
+	if (node.type == Token.SCRIPT && node.comments) { 			
+		for each (var comment in node.comments.toArray()) {
+			if (comment.commentType == Token.CommentType.JSDOC) {
+
+				commentSrc = '' + comment.toSource();
+				
+				if (commentSrc) {
+					tags = Tag.parse(commentSrc);
+					if ( tags.hasTag('name') ) {
+						addMeta(comment, tags);
+						walker.tagSets.push(tags);
+					}
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+/**
+	Walk script nodes in a script resource, collect tag data.
+	@private
+	@function getJsDocCommentTags
+	@param {org.ringojs.repository.Resource} resource Source file to scan.
+	@return {TagSet}
+ */
+function getJsDocCommentTags(resource) {
+	walker.tagSets = []; // accumulates tagSets while walker recurses through the code tree
+	
+	// see http://ringojs.org/api/ringo/parser
+	visitScriptResource(resource, walker);
+	
+	return walker.tagSets;
 };
 
 /**
 	Represents a documented symbol in the source code.
+	@constructor Symbol
  */
 function Symbol(shortname, name, description, memberof, isa) {
 	this.shortname = shortname;
@@ -171,11 +257,18 @@ function Symbol(shortname, name, description, memberof, isa) {
 
 /**
 	A collection of symbols. This is what the template will get.
+	@constructor SymbolSet
+	@param {Array<Symbol>}
  */
 function SymbolSet(symbols) {
 	this.symbols = symbols;
 }
 
+/**
+	Convert this SymbolSet to a JSON string.
+	@name SymbolSet#toJSON
+	@return {string}
+ */
 SymbolSet.prototype.toJSON = function() {
 	var symbol,
 		json = [];
@@ -194,6 +287,12 @@ SymbolSet.prototype.toJSON = function() {
 	return JSON.stringify(json);
 }
 
+/**
+	Returns the first symbol with the given title.
+	@private
+	@function SymbolSet#getSymbolByName
+	@return {Symbol|null}
+ */
 SymbolSet.prototype.getSymbolByName = function(name) {
 	var symbol;
 	
@@ -201,16 +300,22 @@ SymbolSet.prototype.getSymbolByName = function(name) {
 		symbol = this.symbols[i];
 		if (name === symbol.name) { return symbol; }
 	}
+	
+	return null;
 }
 
 /**
 	Turn array of tadSets into an array of Symbols.
+	@private
+	@function toSymbols
+	@param {TagSet} tagSet
+	@return {Array<Symbol>}
  */
-function toSymbols(tagSets) {
+function toSymbols(tagSet) {
 	var symbols = [],
 		symbol;
 	
-	for each (var tags in tagSets) {
+	for each (var tags in tagSet) {
 		symbol = new Symbol(tags.getTag('shortname'), tags.getTag('name'), tags.getTag('description'), tags.getTag('memberof'), tags.getTag('isa'));
 		symbol.meta = tags.meta;
 		symbols.push( symbol );
@@ -221,41 +326,73 @@ function toSymbols(tagSets) {
 
 /**
 	Represents a single tag.
+	@private
+	@constructor Tag
+	@param {string} title
+	@param {string} text
  */
 var Tag = function(title, text) {
 	this.title = (''+title).toLowerCase();
 	this.text = text;
 }
 
+/**
+	Does this TagSet have a tag with the given title.
+	@private
+	@methodOf Tag#
+	@param {string} title
+ */
 function hasTag(name) {
 	return (this.getTag(name) !== null);
 }
 
-function getTag(name) {
-	name = (''+name).toLowerCase();
+/**
+	Get the text of all the first tag with the given title.
+	@private
+	@methodOf Tag#
+	@param {string} title
+	@return {string|null}
+ */
+function getTag(title) {
+	title = (''+title).toLowerCase();
 	
-	if (this[name]) { return this[name]; }
+	if (this[title]) { return this[title]; }
 	
 	for (var i = 0, leni = this.tags.length; i < leni; i++) {
-		if (this.tags[i].title === name) { return this.tags[i].text; }
+		if (this.tags[i].title === title) { return this.tags[i].text; }
 	}
 	
 	return null;
 }
 
-function getTags(name) {
+/**
+	Get the texts of all the tags with the given title.
+	@private
+	@methodOf Tag#
+	@param {string} title
+	@return {Array<string>}
+ */
+function getTags(title) {
 	var text = [];
-	name = (''+name).toLowerCase();
 	
-	if (this[name]) { return this[name]; }
+	title = (''+title).toLowerCase();
+	
+	if (this[title]) { return this[title]; }
 	
 	for (var i = 0, leni = this.tags.length; i < leni; i++) {
-		if (this.tags[i].title === name) { text.push(this.tags[i].text); }
+		if (this.tags[i].title === title) { text.push(this.tags[i].text); }
 	}
 	
 	return text;
 }
 
+/**
+	Given the raw text of the doc comment, returns an object representing that doc.
+	@private
+	@method Tag.parse
+	@param {string} doc
+	@return {Object}
+ */
 Tag.parse = function(doc) {
 	var tags = [],
 		o = {}; // a tagSet?
@@ -333,6 +470,7 @@ Tag.parse = function(doc) {
 	return o;
 }
 
+// todo
 Tag.prototype = {
 	get type() {
 		if (!this._type) { this._type = parseType(this.text); }
@@ -340,12 +478,13 @@ Tag.prototype = {
 	}
 };
 
+// todo
 function parseType(text) {}
 
 /**
 	Remove JsDoc comment artifacts. Trims white space.
 	@private
-	@name unwrapComment
+	@function unwrapComment
 	@param {string} commentSrc
 	@return {string} Stars and slashes removed.
  */
@@ -358,6 +497,8 @@ function unwrapComment(commentSrc) {
 	Sets various properties related to the symbol name on the doc object,
 	based on the tags present. Will throw error in docName if we get this far 
 	without a @name.
+	@private
+	@function handleName
  */
 function handleName(tagSet) {
 	var nameTag     = tagSet.name     || tagSet.getTag('name'),
