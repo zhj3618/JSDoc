@@ -3,7 +3,7 @@ export('publish');
 include('ringo/file');
 include('normal/normal-template');
 
-function publish(/**SymbolSet*/symbolSet, /**File*/destination) {
+function publish(/**DocSet*/docSet, /**File*/destination) {
 
 	// create the template object
 	var templateFile = new File('apps/jsdoc-toolkit/templates/default/class.html'),
@@ -20,19 +20,19 @@ function publish(/**SymbolSet*/symbolSet, /**File*/destination) {
 	template = compile(templateSrc);
 	
 	// find classes, and their properties/methods
-	var allClasses = symbolSet.symbols.filter(function(symbol) {
-		return symbol.isa === 'constructor';
+	var allClasses = docSet.docs.filter(function(doc) {
+		return doc.isa === 'constructor';
 	});
 		
-	allClasses.forEach(function(classSymbol) {
-		var instance = classSymbol.name + '#';
+	allClasses.forEach(function(classDoc) {
+		var instance = classDoc.name + '#';
 		
-		classSymbol.methods = symbolSet.symbols.filter(function(symbol) {
-			return symbol.memberof === instance && symbol.isa === 'method';
+		classDoc.methods = docSet.docs.filter(function(doc) {
+			return doc.memberof === instance && doc.isa === 'method';
 		});
 		
-		classSymbol.properties = symbolSet.symbols.filter(function(symbol) {
-			return symbol.memberof === instance && symbol.isa === 'property';
+		classDoc.properties = docSet.docs.filter(function(doc) {
+			return doc.memberof === instance && doc.isa === 'property';
 		});
 	});
 	
