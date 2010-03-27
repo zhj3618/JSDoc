@@ -8,6 +8,9 @@ export('docName', 'docName.fromSource', 'docName.derive', 'docName.resolveThis')
 
 include('jsdoc/common');
 
+/**
+	Combine parts up into name.
+ */
 function connect(name, memberof, opts) {
 	if (memberof.endsWith('#')) {
 		opts.isstatic = false;
@@ -21,6 +24,9 @@ function connect(name, memberof, opts) {
 	return memberof + '.' + name;
 };
 
+/**
+	Split name up into parts.
+ */
 function divide(name, opts) {
 	var parts = {
 		memberof: '',
@@ -35,7 +41,7 @@ function divide(name, opts) {
 	) {
 
 		parts.connector = RegExp.$2;
-		parts.memberof = RegExp.$1;
+		parts.memberof  = RegExp.$1;
 		parts.shortname = RegExp.$3 || name;
 		
 		parts.name = name;
