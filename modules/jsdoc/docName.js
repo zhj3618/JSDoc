@@ -1,4 +1,10 @@
-export('docName', 'docName.fromSource');
+/**
+	@fileOverview
+	@desc Functionality related to parsing the names of symbols.
+
+ */
+
+export('docName', 'docName.fromSource', 'docName.derive', 'docName.resolveThis');
 
 include('jsdoc/common');
 
@@ -88,8 +94,6 @@ function docName(name, memberof, props) {
 	@return {string}
  */
 docName.fromSource = function(sourceName) {
-print("docName.fromSource("+sourceName+")");
-	
 	var name = sourceName.replace(/\.prototype\.?/g, '#');
  	
  	if (name.indexOf('[') > -1) { // stringy name, like foo["bar"] or foo['bar']
@@ -106,3 +110,81 @@ print("docName.fromSource("+sourceName+")");
 	
 	return name;
 }
+
+/**
+	Sets various properties related to the doc name on the doc object,
+	considering the other tags and properties present.
+	@function docName.derive
+	@param {Doc} doc
+ */
+docName.derive = function(doc) {
+	var nameTag     = doc.name     || doc.getTag('name'),
+		memberofTag = doc.memberof || doc.getTag('memberof'),
+		isinnerTag  = doc.isinner  || doc.hasTag('inner'),
+		isstaticTag = doc.isstatic || doc.hasTag('static'),
+		name;
+	name = docName(nameTag, memberofTag, {isstatic: isstaticTag, isinner: isinnerTag});
+	
+	doc.name      = name.name;
+	doc.shortname = name.shortname;
+	doc.memberof  = name.memberof;
+	doc.isstatic  = name.isstatic;
+	doc.isinner   = name.isinner;
+}
+
+/**
+	What does `this` mean in the doc name?
+	@private
+	@function
+	@param {string} name Possibly starting with `this.`
+	@param {org.mozilla.javascript.ast.AstNode} node The node in question.
+	@param {string} [memberof] If the user provided a @memberof tag, we can use it.
+	
+	@return {string} The resolved namepath.
+ */
+docName.resolveThis = function(name, node, memberof) {
+	var enclosingFunction;
+	
+	if (name.indexOf('this.') === 0) {
+		if (!memberof) {
+			if (enclosingFunction = node.getEnclosingFunction()) {
+				memberof = enclosingFunction.getName(); // empty string for anonymous functions
+			}
+			
+			if (memberof) {
+				name = memberof + '#' + name.slice(5); // replace this. with foo#
+			}
+			else { // it's an anonymous function
+				memberof = docName.nameFromAnon(enclosingFunction);
+				
+				if (memberof) {
+					name = memberof + '#' + name.slice(5); // replace `this.` with memberof
+				}
+			}
+		}
+		else {
+			name = name.slice(5);
+		}
+	}
+	return name;
+}
+
+/**
+	Keep track of anonymous functions that have been assigned to documented symbols.
+	@private
+	@function nameFromAnon
+	@param {org.mozilla.javascript.ast.AstNode} node
+	@return {string|null} The documented name, if any.
+ */
+docName.nameFromAnon = function(node) {
+	var i = docName.anons.length;
+	while (i--) {
+		if (docName.anons[i][0] === node) {
+			return docName.anons[i][1];
+		}
+	}
+	
+	return null;
+}
+// tuples, like [ [noderef, jsdocName], [noderef, jsdocName] ]
+docName.anons = [];

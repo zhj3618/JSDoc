@@ -268,13 +268,12 @@ exports.testStringyNameFromSource = function () {
 	
 	// contains escaped quotes?
 	assertEqual(
-		'foo."bar\'".zip,
+		'foo."bar\\\'".zip',
 		docName.fromSource('foo[\'bar\\\'\'].zip')
 	);
 	
-	// contains escaped quotes?
 	assertEqual(
-		'foo."bar\\"".zip,
+		'foo."bar\\"".zip',
 		docName.fromSource('foo["bar\\\""].zip')
 	);
 };
