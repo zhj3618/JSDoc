@@ -1,11 +1,15 @@
 export('parseSteps');
 
+include('jsdoc/Doc');
+include('jsdoc/docName');
+include('jsdoc/Tag');
+
 /**
 	@desc Handlers for source code patterns that are recognized by JsDoc Toolkit.
 	@name parseStep
 	@function
 	@param {org.mozilla.javascript.ast.AstNode} node A source code node.
-	@param {DocSet} docSet Accumulates new Doc objects derived from processing the nodes.
+	@param {DocSet} docs Accumulates new Doc objects derived from processing the nodes.
 	@return {boolean} Return true to stop further processing of the current node.
  */
 
@@ -19,7 +23,11 @@ var parseSteps = [
 	     /** @name foo*\/
 	     // whatever
 	 */
-	function handleNamed(node, docSet) {
+	function handleNamed(node, docs) {
+		var commentSrc,
+			doc,
+			retVal = false;
+			
 		if (node.type == Token.SCRIPT && node.comments) { 			
 			for each (var comment in node.comments.toArray()) {
 				if (comment.commentType == Token.CommentType.JSDOC) {
@@ -30,14 +38,14 @@ var parseSteps = [
 						doc = new Doc(commentSrc);
 						if ( doc.hasTag('name') ) {
 							doc.addMeta(comment, doc);
-							docSet.push(doc);
-							return true;
+							docs.push(doc);
+							retVal = true;
 						}
 					}
 				}
 			}
 		}
-		return false;
+		return retVal;
 	}
 	,
 	
@@ -50,7 +58,12 @@ var parseSteps = [
 	     function foo() {
 	     }
 	 */
-	function handleFunctionDec(node, docSet) {
+	function handleFunctionDec(node, docs) {
+		var commentSrc,
+			doc,
+			name,
+			retVal = false;
+		
 		if (node.type == Token.FUNCTION) {
 			if (commentSrc = node.jsDoc) {
 				doc = new Doc(commentSrc);
@@ -59,12 +72,12 @@ var parseSteps = [
 					name = docName.resolveThis(node.name, node, doc.getTag('memberof'));
 					doc.setName(name);
 					doc.addMeta(node);
-					docSet.push(doc);
-					return true;
+					docs.push(doc);
+					retVal = true;
 				}
 			}
 		}
-		return false;
+		return retVal;
 	}
 	,
 	
@@ -77,7 +90,12 @@ var parseSteps = [
 	     foo = function() {
 	     }
 	 */
-	function handleFunctionAssign(node, docSet) {
+	function handleFunctionAssign(node, docs) {
+		var commentSrc,
+			doc,
+			name,
+			retVal = false;
+		
 		if (node.type === Token.ASSIGN) {
 			if (node.right.type === Token.FUNCTION) {
 				if (commentSrc = node.jsDoc) {
@@ -88,13 +106,13 @@ var parseSteps = [
 						docName.anons.push([node.right, name]);
 						doc.setName(name, doc);
 						doc.addMeta(node, doc);
-						docSet.push(doc);
-						return true;
+						docs.push(doc);
+						retVal = true;
 					}
 				}
 			}
 		}
-		return false;
+		return retVal;
 	}
 	,
 	
@@ -110,7 +128,12 @@ var parseSteps = [
 	         bar = function() {
 	         }
 	 */
-	function handleVarDec(node, docSet) {
+	function handleVarDec(node, docs) {
+		var commentSrc,
+			doc,
+			name,
+			retVal = false;
+		
 		if (node.type == Token.VAR || node.type == Token.LET) {
 			var counter = 0;
 			for each (var n in ScriptableList(node.variables)) {
@@ -124,13 +147,47 @@ var parseSteps = [
 							docName.anons.push([n.initializer, name]);
 							doc.setName(name, doc);
 							doc.addMeta((node.jsDoc? node : n), doc);
-							docSet.push(doc);
-							return true;
+							docs.push(doc);
+							retVal = true;
 						}
 					}
 				}
 			}
 		}
-		return false;
+
+		return retVal;
 	}
 ];
+
+
+/**
+	Represents a JsDoc comment in the source code.
+	@param {string} commentSrc
+ */
+
+// credit: ringojs ninjas
+function nodeToString(node) {
+    if (node.type === Token.GETPROP) {
+        return [nodeToString(node.target), node.property.string].join('.');
+    }
+    else if (node.type === Token.NAME) {
+        return node.string;
+    }
+    else if (node.type === Token.STRING) {
+        return node.value;
+    }
+    else if (node.type === Token.THIS) {
+        return 'this';
+    }
+    else if (node.type === Token.GETELEM) {
+        return node.toSource(); // like: Foo['Bar']
+    }
+    else {
+        return getTypeName(node);
+    }
+};
+
+// credit: ringojs ninjas
+function getTypeName(node) {
+    return node ? org.mozilla.javascript.Token.typeToName(node.getType()) : '' ;
+}

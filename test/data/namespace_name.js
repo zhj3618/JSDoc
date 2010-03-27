@@ -7,15 +7,15 @@
 
 (function() {
 
-	/**
-		@namespace
-		@name ns1
-	 */
-	ns1 = {
-		// most verbose technique
-		// provide the name and isa information separately
-	};
-	
+ 	/**
+ 		@namespace
+ 		@name ns1
+ 	 */
+ 	ns1 = {
+ 		// most verbose technique
+ 		// provide the name and isa information separately
+ 	};
+ 	
 	/** @namespace ns2 */
 	ns2 = {
 		// most compact way
@@ -26,16 +26,16 @@
 		//   @name x
 		//   @namespace
 	}
-	
-	/** @namespace ns2.ns3 */
-	ns2.ns3 = {
-		/**
-			@namespace ns4
-			@memberof ns2.ns3
-			@desc A description.
-		 */
-		ns4: {
-			//
-		}
-	}
+ 	
+ 	/** @namespace ns2.ns3 */
+ 	ns2.ns3 = {
+ 		/**
+ 			@namespace ns4
+ 			@memberof ns2.ns3
+ 			@desc A description.
+ 		 */
+ 		ns4: {
+ 			//
+ 		}
+ 	}
 })();
