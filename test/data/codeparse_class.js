@@ -20,8 +20,8 @@ function Foo(a, b) {
 	this.dab = function() { // Foo#dab
 	}
 	
-	var that = this;
-	
+// 	var that = this;
+// 	
 	/** @desc A named instance method on that.
 		@name erp
 		@methodOf Foo#

@@ -1,4 +1,4 @@
-export('docName');
+export('docName', 'docName.fromSource');
 
 include('jsdoc/common');
 
@@ -80,4 +80,29 @@ function docName(name, memberof, props) {
 	result.isstatic = props.isstatic || false;
 	
 	return result;
+}
+
+/**
+	The name was found in the source code, may need some clean up, then add new tag to doc.
+	@param {string} sourceName
+	@return {string}
+ */
+docName.fromSource = function(sourceName) {
+print("docName.fromSource("+sourceName+")");
+	
+	var name = sourceName.replace(/\.prototype\.?/g, '#');
+ 	
+ 	if (name.indexOf('[') > -1) { // stringy name, like foo["bar"] or foo['bar']
+ 		name = name
+			.replace(/(["'])\]\[\1/g, '"."')
+			.replace(/["']\]\./g, '".')
+			.replace(/\.\[["']/g, '."')
+			.replace(/["']\]#/g, '"#')
+			.replace(/#\[["']/g, '#"')
+			.replace(/\[["']/g, '."')
+			.replace(/["']\](.*)/g, "\"$1")
+		;
+	}
+	
+	return name;
 }

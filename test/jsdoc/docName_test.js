@@ -199,3 +199,114 @@ exports.testStrangename = function () {
 		docName('"f##"#"\"b#r,\" she said."')
 	);
 };
+
+exports.testStringyNameFromSource = function () {
+	assertEqual(
+		'foo."bar"',
+		docName.fromSource('foo["bar"]')
+	);
+	
+	assertEqual(
+		'foo."bar"',
+		docName.fromSource("foo['bar']")
+	);
+	
+	assertEqual(
+		'foo."bar".zip',
+		docName.fromSource('foo["bar"].zip')
+	);
+	
+	assertEqual(
+		'foo."bar".zip',
+		docName.fromSource("foo['bar'].zip")
+	);
+	
+	assertEqual(
+		'foo."bar"."zip"',
+		docName.fromSource("foo['bar']['zip']")
+	);
+	
+	assertEqual(
+		'foo."bar"."zip"',
+		docName.fromSource('foo["bar"]["zip"]')
+	);
+	
+	assertEqual(
+		'foo."bar".bap."zip"',
+		docName.fromSource("foo['bar'].bap['zip']")
+	);
+	
+	assertEqual(
+		'foo."bar".bap."zip"',
+		docName.fromSource('foo["bar"].bap["zip"]')
+	);
+	
+	assertEqual(
+		'foo."bar".bap."zip".zop',
+		docName.fromSource("foo['bar'].bap['zip'].zop")
+	);
+	
+	assertEqual(
+		'foo."bar".bap."zip".zop',
+		docName.fromSource('foo["bar"].bap["zip"].zop')
+	);
+	
+	assertEqual(
+		'foo."bar".bap."zip".zop',
+		docName.fromSource('foo[\'bar\'].bap["zip"].zop')
+	);
+	
+	assertEqual(
+		'foo."bar"."zip".zop',
+		docName.fromSource('foo[\'bar\']["zip"].zop')
+	);
+	
+	assertEqual(
+		'foo."bar"."zip".zop',
+		docName.fromSource('foo[\'bar\']["zip"].zop')
+	);
+};
+
+exports.testProtoNameFromSource = function () {
+	assertEqual(
+		'foo#',
+		docName.fromSource('foo.prototype')
+	);
+	
+	assertEqual(
+		'foo#bar',
+		docName.fromSource('foo.prototype.bar')
+	);
+	
+	assertEqual(
+		'foo#bar#',
+		docName.fromSource('foo.prototype.bar.prototype')
+	);
+	
+	assertEqual(
+		'foo#bar#zip',
+		docName.fromSource('foo.prototype.bar.prototype.zip')
+	);
+}
+
+exports.testStringyProtoNameFromSource = function () {
+	assertEqual(
+		'foo#"constructor"',
+		docName.fromSource('foo.prototype.["constructor"]')
+	);
+	
+	assertEqual(
+		'foo#"constructor"',
+		docName.fromSource("foo.prototype.['constructor']")
+	);
+	
+	assertEqual(
+		'foo#"constructor"#',
+		docName.fromSource('foo.prototype.["constructor"].prototype')
+	);
+	
+	assertEqual(
+		'foo#"constructor"#',
+		docName.fromSource("foo.prototype.['constructor'].prototype")
+	);
+}

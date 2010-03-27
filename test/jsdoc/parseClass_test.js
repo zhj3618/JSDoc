@@ -3,10 +3,10 @@ include('jsdoc/parse');
 
 exports.setUp = exports.tearDown = function() {}
 
-var symbolSet = parseDocs('apps/jsdoc-toolkit/test/data/', 'codeparse_class.js');
+var docSet = parseDocs('apps/jsdoc-toolkit/test/data/', 'codeparse_class.js');
 
-function getSymbol(name) {
-	var symbol = symbolSet.getSymbolByName(name);
+function getDoc(name) {
+	var symbol = docSet.getDocByName(name);
 
 	if (symbol === null) {
 		throw new Error('No symbol found with that name: ' + name);
@@ -17,25 +17,25 @@ function getSymbol(name) {
 
 exports.testBasic = function () {
 	// can find all doc comments
-	assertEqual(13, symbolSet.symbols.length);
+	assertEqual(13, docSet.docs.length);
 	
-	assertEqual('Foo', symbolSet.getSymbolByName('Foo').name);
+	assertEqual('Foo', docSet.getDocByName('Foo').name);
 }
 
 exports.testThisWithMemberof = function () {
-	assertEqual('Foo#bar', getSymbol('Foo#bar').name);
-	assertEqual('Foo#cud', getSymbol('Foo#cud').name);
-	assertEqual('Foo#erp', getSymbol('Foo#erp').name);
+	assertEqual('Foo#bar', getDoc('Foo#bar').name);
+	assertEqual('Foo#cud', getDoc('Foo#cud').name);
+	assertEqual('Foo#erp', getDoc('Foo#erp').name);
 }
 
 exports.testThisWithNoMemberof = function () {
-	assertEqual('Foo#dab', getSymbol('Foo#dab').name);
+	assertEqual('Foo#dab', getDoc('Foo#dab').name);
 }
 
 exports.testThisWithNoMemberofAnon = function () {
-	assertEqual('Foo.Bar#foo', getSymbol('Foo.Bar#foo').name);
-	assertEqual('Piz#pep', getSymbol('Piz#pep').name);
-	assertEqual('Zat#Zoo', getSymbol('Zat#Zoo').name);
-	assertEqual('Zat#Zoo#zuz', getSymbol('Zat#Zoo#zuz').name);
-	assertEqual('Zat#zik', getSymbol('Zat#zik').name);
+	assertEqual('Foo.Bar#foo', getDoc('Foo.Bar#foo').name);
+	assertEqual('Piz#pep', getDoc('Piz#pep').name);
+	assertEqual('Zat#Zoo', getDoc('Zat#Zoo').name);
+	assertEqual('Zat#Zoo#zuz', getDoc('Zat#Zoo#zuz').name);
+	assertEqual('Zat#zik', getDoc('Zat#zik').name);
 }

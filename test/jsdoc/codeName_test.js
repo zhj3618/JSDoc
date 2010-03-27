@@ -3,40 +3,40 @@ include('jsdoc/parse');
 
 exports.setUp = exports.tearDown = function() {}
 
-var symbolSet = parseDocs('apps/jsdoc-toolkit/test/data/', 'codeparse_name.js');
+var docSet = parseDocs('apps/jsdoc-toolkit/test/data/', 'codeparse_name.js');
 
 exports.testBasic = function () {
 	// can find all doc comments
-	assertEqual(10, symbolSet.symbols.length);
+	assertEqual(10, docSet.docs.length);
 	
 	// @name given
-	assertEqual('Arf', symbolSet.symbols[0].name);
+	assertEqual('Arf', docSet.docs[0].name);
 }
 
 exports.testNoName = function () {
- 	assertEqual('Bar', symbolSet.symbols[1].name);
- 	assertEqual('Caz', symbolSet.symbols[2].name);
+ 	assertEqual('Bar', docSet.docs[1].name);
+ 	assertEqual('Caz', docSet.docs[2].name);
 }
 
 exports.testFindMemberof = function () {
- 	assertEqual('Caz.Dop', symbolSet.symbols[3].name);
- 	assertEqual('Dop', symbolSet.symbols[3].shortname);
- 	assertEqual('Caz', symbolSet.symbols[3].memberof);
+ 	assertEqual('Caz.Dop', docSet.docs[3].name);
+ 	assertEqual('Dop', docSet.docs[3].shortname);
+ 	assertEqual('Caz', docSet.docs[3].memberof);
 }
 
 exports.testMemberofGiven = function () {
- 	assertEqual('Loo.Kub', symbolSet.symbols[9].name);
- 	assertEqual('Kub', symbolSet.symbols[9].shortname);
- 	assertEqual('Loo', symbolSet.symbols[9].memberof);
+ 	assertEqual('Loo.Kub', docSet.docs[9].name);
+ 	assertEqual('Kub', docSet.docs[9].shortname);
+ 	assertEqual('Loo', docSet.docs[9].memberof);
 }
 
 exports.testVarAssign = function () {
- 	assertEqual('Erf', symbolSet.symbols[4].name);
- 	assertEqual('Foo', symbolSet.symbols[5].name);
+ 	assertEqual('Erf', docSet.docs[4].name);
+ 	assertEqual('Foo', docSet.docs[5].name);
 }
 
 exports.testStringIndexed = function () {
- 	assertEqual('Foo."Gub"', symbolSet.symbols[6].name);
- 	assertEqual('Foo."Gub"#"Hoo"', symbolSet.symbols[7].name);
- 	assertEqual('Foo."Gub"."Jaz"', symbolSet.symbols[8].name);
+ 	assertEqual('Foo."Gub"', docSet.docs[6].name);
+ 	assertEqual('Foo."Gub"#"Hoo"', docSet.docs[7].name);
+ 	assertEqual('Foo."Gub"."Jaz"', docSet.docs[8].name);
 }
