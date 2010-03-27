@@ -1,10 +1,5 @@
 // Example: documenting the name of a symbol
 
-// tags used:
-// @name
-// @memberOf
-
-
 /**
 	@name apu
  */

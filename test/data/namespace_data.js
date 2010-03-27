@@ -8,8 +8,8 @@
 (function() {
 
  	/**
- 		@namespace
- 		@name ns1
+ 	 *	@name ns1
+ 	 *	@namespace
  	 */
  	ns1 = {
  		// most verbose technique

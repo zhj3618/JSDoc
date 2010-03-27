@@ -3,8 +3,8 @@ include('jsdoc/parse');
 
 exports.setUp = exports.tearDown = function() {}
 
-exports.testParseTagsNamespace = function () {
-	var docSet = parseDocs('apps/jsdoc-toolkit/test/data/', 'namespace_name.js');
+exports.testNamespaceName = function () {
+	var docSet = parseDocs('apps/jsdoc-toolkit/test/data/', 'namespace_data.js');
 	
 	// can find all doc comments
 	assertEqual(4, docSet.docs.length);

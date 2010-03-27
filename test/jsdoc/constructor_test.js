@@ -3,7 +3,7 @@ include('jsdoc/parse');
 
 exports.setUp = exports.tearDown = function() {}
 
-var docSet = parseDocs('apps/jsdoc-toolkit/test/data/', 'codeparse_name.js');
+var docSet = parseDocs('apps/jsdoc-toolkit/test/data/', 'constructor_data.js');
 
 exports.testBasic = function () {
 	// can find all doc comments

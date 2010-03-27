@@ -20,8 +20,10 @@ function connect(name, memberof, opts) {
 	if (opts.isinner) {
 		return memberof + '-' + name;
 	}
-	
-	return memberof + '.' + name;
+	else {
+		opts.isstatic = true;
+		return memberof + '.' + name;
+	}
 };
 
 /**
@@ -87,7 +89,7 @@ function docName(name, memberof, props) {
 		result.shortname = parts.shortname;
 		result.name = parts.name;
 	}
-	
+
 	result.isinner = props.isinner || false;
 	result.isstatic = props.isstatic || false;
 	
