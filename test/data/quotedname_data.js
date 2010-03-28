@@ -22,3 +22,13 @@
    @name Foo."@name Foo.\"@name"#name
    @method
  */
+
+/**
+   @name "F-o.o#o"-foz
+   @method
+ */
+
+/**
+   @name "F-o.o#o".fez
+   @method
+ */

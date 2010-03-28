@@ -32,3 +32,11 @@ exports.testStrangeQuotedMethodInTag = function () {
 	assertEqual(docSet.getDocByName('Foo."@name Foo.\\"@name"#name').memberof, 'Foo."@name Foo.\\"@name"#');
 	assertEqual(docSet.getDocByName('Foo."@name Foo.\\"@name"#name').shortname, 'name');
 }
+
+exports.testPrivateQuotedMethodInTag = function () {
+	var doc = docSet.getDocByName('"F-o.o#o"-foz');
+	assertEqual(doc.name, '"F-o.o#o"');
+	assertEqual(doc.memberof, '"F-o.o#o"');
+	assertEqual(doc.shortname, 'foz');
+	assertEqual(doc.isinner, true);
+}
