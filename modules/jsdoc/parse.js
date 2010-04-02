@@ -43,8 +43,8 @@ function parseDocs(root, src) {
 	@param {org.mozilla.javascript.ast.AstNode} node
  */
 function walker(node) {
-	for (var i = 0, leni = parseSteps.length; i < leni; i++) {
-		if ( parseSteps[i](node, walker.docs) ) {
+	for (var i = 0, leni = nodeHandlers.length; i < leni; i++) {
+		if ( nodeHandlers[i](node, walker.docs) ) {
 			break;
 		}
 	}

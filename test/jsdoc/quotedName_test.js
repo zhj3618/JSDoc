@@ -1,9 +1,47 @@
+function sample() {
+	/**
+	   @name "Foo"
+	   @onstructor
+	 */
+	
+	/**
+	   @name Foo#"=b@r#;"
+	   @method
+	 */
+	
+	/**
+	   @name Foo#"it's \"bar!\""
+	   @method
+	 */
+	
+	/**
+	   @name Foo."=b@r#;"#fip
+	   @method
+	 */
+	
+	/**
+	   @name Foo."@name Foo.\"@name"#name
+	   @method
+	 */
+	
+	/**
+	   @name "F-o.o#o"-foz
+	   @method
+	 */
+	
+	/**
+	   @name "F-o.o#o".fez
+	   @method
+	 */
+}
+
+
 include('ringo/unittest');
 include('jsdoc/parse');
 
 exports.setUp = exports.tearDown = function() {}
 
-var docSet = parseDocs('apps/jsdoc-toolkit/test/data/', 'quotedName_data.js');
+var docSet = parseDocs('apps/jsdoc-toolkit/test/jsdoc/', 'quotedName_test.js');
 
 exports.testQuotedNameInTag = function () {
 	assertEqual(docSet.getDocByName('"Foo"').name, '"Foo"');

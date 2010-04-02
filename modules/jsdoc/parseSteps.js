@@ -1,4 +1,4 @@
-export('parseSteps');
+export('nodeHandlers');
 
 include('jsdoc/Doc');
 include('jsdoc/docName');
@@ -13,10 +13,10 @@ include('jsdoc/Tag');
 	@return {boolean} Return true to stop further processing of the current node.
  */
 
-var parseSteps = [
+var nodeHandlers = [
 
 	/**
-		Handle a jsdoc comment with a @name tag (the common case).
+		Handle a jsdoc comment with a @name tag.
 		@private
 		@function
 		@example
@@ -28,6 +28,45 @@ var parseSteps = [
 			doc,
 			retVal = false;
 			
+/*debug*///print('nodeToString is '+nodeToString(node));
+
+					
+
+//		if (node.type == Token.OBJECTLIT) {
+/*debug*///print('>> objectlit');
+//for (var p in node) { try{
+//	print(">>    "+p+": "+(typeof node[p] === 'function'? 'function' : node[p]) );
+//} catch(e){}
+//}
+//			if (commentSrc = node.getLastSibling()) {
+/*debug*///print('>> objectlit getLastSibling is '+nodeToString(commentSrc));			
+//			}
+//		}
+		
+		if (node.type == Token.COLON) {
+/*debug*///print('>> nodeToString is '+nodeToString(node));	
+/*debug*///print('>> node.getLeft is '+nodeToString(node.getLeft()));
+/*debug*///print('>> node.getRight is '+nodeToString(node.getRight()));
+			//if (nodeToString(node.getRight()) === 'FUNCTION') {
+				var left = node.getLeft();
+				var name = nodeToString(left);
+				if (commentSrc = left.jsDoc) {
+					doc = new Doc(commentSrc);
+					if ( !doc.hasTag('name') ) {
+						name = docName.resolveThis(name, left, doc.getTag('memberof'));
+						doc.setName(name);
+						doc.addMeta(node);
+						docs.push(doc);
+						retVal = true;
+					}
+				}
+				
+/*debug*///print('>> name is '+name);
+/*debug*///print('>> node.getLeft() jsdoc is '+node.getLeft().jsDoc);
+/*debug*///print('>> enclosingScope is '+nodeToString(node.enclosingScope));
+			//}
+		}
+		else
 		if (node.type == Token.SCRIPT && node.comments) { 			
 			for each (var comment in node.comments.toArray()) {
 				if (comment.commentType == Token.CommentType.JSDOC) {
@@ -36,7 +75,7 @@ var parseSteps = [
 					
 					if (commentSrc) {
 						doc = new Doc(commentSrc);
-						if ( doc.hasTag('name') ) {
+						if ( doc.hasTag('name') && !doc.hasTag('ignore')) {
 							doc.addMeta(comment, doc);
 							docs.push(doc);
 							retVal = true;
@@ -50,7 +89,7 @@ var parseSteps = [
 	,
 	
 	/**
-		Handle documented function with no @name tag.
+		Handle documented function declaration with no @name tag.
 		@private
 		@function
 		@example
@@ -128,7 +167,7 @@ var parseSteps = [
 	         bar = function() {
 	         }
 	 */
-	function handleVarDec(node, docs) {
+	function handleVarFunctionAssign(node, docs) {
 		var commentSrc,
 			doc,
 			name,
