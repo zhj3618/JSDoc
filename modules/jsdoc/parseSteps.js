@@ -28,49 +28,6 @@ var nodeHandlers = [
 			doc,
 			retVal = false;
 			
-/*debug*///print('nodeToString is '+nodeToString(node));
-
-					
-
-//		if (node.type == Token.OBJECTLIT) {
-/*debug*///print('>> objectlit');
-//for (var p in node) { try{
-//	print(">>    "+p+": "+(typeof node[p] === 'function'? 'function' : node[p]) );
-//} catch(e){}
-//}
-//			if (commentSrc = node.getLastSibling()) {
-/*debug*///print('>> objectlit getLastSibling is '+nodeToString(commentSrc));			
-//			}
-//		}
-		
-		if (node.type == Token.COLON) {
-/*debug*///print('>> nodeToString is '+nodeToString(node));	
-/*debug*///print('>> node.getLeft is '+nodeToString(node.getLeft()));
-/*debug*///print('>> node.getRight is '+nodeToString(node.getRight()));
-			//if (nodeToString(node.getRight()) === 'FUNCTION') {
-				var left = node.getLeft();
-				var name = nodeToString(left);
-				if (commentSrc = left.jsDoc) {
-					doc = new Doc(commentSrc);
-					if ( !doc.hasTag('name') ) {
-						var memberof = doc.getTag('memberof');
-						
-						doc.addIsa(node.getRight().type);
-						
-						name = docName.resolveThis(name, left, memberof);
-						doc.setName(name);
-						doc.addMeta(node);
-						docs.push(doc);
-						retVal = true;
-					}
-				}
-				
-/*debug*///print('>> name is '+name);
-/*debug*///print('>> node.getLeft() jsdoc is '+node.getLeft().jsDoc);
-/*debug*///print('>> enclosingScope is '+nodeToString(node.enclosingScope));
-			//}
-		}
-		else
 		if (node.type == Token.SCRIPT && node.comments) { 			
 			for each (var comment in node.comments.toArray()) {
 				if (comment.commentType == Token.CommentType.JSDOC) {
@@ -89,6 +46,44 @@ var nodeHandlers = [
 			}
 		}
 		return retVal;
+	}
+	,
+	
+	/**
+		Handle documented property name referring to an anonymous function with no @name tag.
+		@private
+		@function
+		@example
+		
+		ns = {
+	     /** blah *\/
+	     foo: function(){}
+	    }
+	 */
+	function handleProperty(node, docs) {
+		var commentSrc,
+			doc,
+			name,
+			retVal = false;
+		
+		if (node.type == Token.COLON) {
+			var left = node.getLeft();
+			name = nodeToString(left);
+			if (commentSrc = left.jsDoc) {
+				doc = new Doc(commentSrc);
+				if ( !doc.hasTag('name') ) {
+					var memberof = doc.getTag('memberof');
+					
+					doc.addIsa(node.getRight().type);
+					
+					name = docName.resolveThis(name, left, memberof);
+					doc.setName(name);
+					doc.addMeta(node);
+					docs.push(doc);
+					retVal = true;
+				}
+			}
+		}
 	}
 	,
 	
