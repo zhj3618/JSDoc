@@ -17,11 +17,11 @@ function sample() { // constructors without @names
 	Caz = new function (c, d) {
 	}
 	 
-	/** @desc a Caz.Dop
-		@constructor
+	/** @desc has a @name
+		@constructor Caz.Dop
 	 */
-	Caz.Dop = function(e, f) {
-	}
+	Caz.Dop = (function(e, f) { return function(){};
+	})();
 	
 	/** @desc Function assignment with var. JsDoc is before the var.
 		@constructor
@@ -69,36 +69,42 @@ exports.testBasic = function () {
 	assertEqual(10, docSet.docs.length);
 	
 	// @name given
-	assertEqual('Arf', docSet.docs[0].name);
+	var doc = docSet.getDocByName('Arf');
+	assertNotNull(doc);
 }
 
 exports.testNoName = function () {
-	assertEqual('Bar', docSet.docs[1].name);
+	var doc = docSet.getDocByName('Bar');
+	assertNotNull(doc);
 }
 
 exports.testNewFunctionConstructor = function () {
-	assertEqual('Caz', docSet.docs[2].name);
+	var doc = docSet.getDocByName('Caz');
+	assertNotNull(doc);
 }
 
 exports.testFindMemberof = function () {
-	assertEqual('Caz.Dop', docSet.docs[3].name);
-	assertEqual('Dop', docSet.docs[3].shortname);
-	assertEqual('Caz', docSet.docs[3].memberof);
+	var doc = docSet.getDocByName('Caz.Dop');
+	assertNotNull(doc);
+	assertEqual(doc.shortname, 'Dop');
+	assertEqual(doc.memberof, 'Caz');
 }
 
 exports.testMemberofGiven = function () {
-	assertEqual('Loo.Kub', docSet.docs[9].name);
-	assertEqual('Kub', docSet.docs[9].shortname);
-	assertEqual('Loo', docSet.docs[9].memberof);
+	var doc = docSet.getDocByName('Loo.Kub');
+	assertNotNull(doc);
+	
+	assertEqual(doc.shortname, 'Kub');
+	assertEqual(doc.memberof, 'Loo');
 }
 
 exports.testVarAssign = function () {
-	assertEqual('Erf', docSet.docs[4].name);
-	assertEqual('Foo', docSet.docs[5].name);
+	assertNotNull(docSet.getDocByName('Erf'));
+	assertNotNull(docSet.getDocByName('Foo'));
 }
 
 exports.testStringIndexed = function () {
-	assertEqual('Foo."Gub"', docSet.docs[6].name);
-	assertEqual('Foo."Gub"#"Hoo"', docSet.docs[7].name);
-	assertEqual('Foo."Gub"."Jaz"', docSet.docs[8].name);
+	assertNotNull(docSet.getDocByName('Foo."Gub"'));
+	assertNotNull(docSet.getDocByName('Foo."Gub"#"Hoo"'));
+	assertNotNull(docSet.getDocByName('Foo."Gub"."Jaz"'));
 }

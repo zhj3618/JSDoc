@@ -184,15 +184,17 @@ var nodeHandlers = [
 			if (node.right.type === Token.NEW && node.right.getTarget().type === Token.FUNCTION) {
 				if (commentSrc = node.jsDoc) {
 					doc = new Doc(commentSrc);
-					
-					name = docName.resolveThis(nodeToString(node.left), node, doc.getTag('memberof'));
-			
-					docName.anons.push([node.right.getTarget(), name]);
-					
-					doc.setName(name, doc);
-					doc.addMeta(node, doc);
-					docs.push(doc);
-					retVal = true;
+					if ( !doc.hasTag('name') ) {
+						doc.addIsa(node.right.getTarget().type);
+						name = docName.resolveThis(nodeToString(node.left), node, doc.getTag('memberof'));
+				
+						docName.anons.push([node.right.getTarget(), name]);
+						
+						doc.setName(name, doc);
+						doc.addMeta(node, doc);
+						docs.push(doc);
+						retVal = true;
+					}
 				}
 			}
 		}
@@ -227,6 +229,8 @@ var nodeHandlers = [
 						doc = new Doc(commentSrc);
 						
 						if ( !doc.hasTag('name') ) {
+							doc.addIsa(n.initializer.type);
+							
 							name = docName.resolveThis(n.target.string, n.target, doc.getTag('memberof'));
 							docName.anons.push([n.initializer, name]);
 							doc.setName(name, doc);

@@ -1,3 +1,4 @@
+exports.Isa                 = require('test/jsdoc/isa_test');
 exports.Ignore              = require('test/jsdoc/ignore_test');
 exports.MethodName          = require('test/jsdoc/method_name_test');
 exports.MethodProperty_name = require('test/jsdoc/methodProperty_name');
