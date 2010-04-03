@@ -17,7 +17,7 @@ function sample() {
 	 */
 	bar = {};
 	
-	/** This is also ignored.
+	/** This is not ignored.
 		@namespace bar.biz
 	 */
 	bar.biz = {};
@@ -35,11 +35,12 @@ var docSet = parseDocs('apps/jsdoc-toolkit/test/jsdoc/', 'ignore_test.js');
 
 exports.testIgnore = function () {
 	// can find all doc comments
-	assertEqual(docSet.docs.length, 2);
+	assertEqual(docSet.docs.length, 3);
 }
 
 exports.testNotIgnoredIsFound = function () {
 	assertNotNull(docSet.getDocByName('foo'));
+	assertNotNull(docSet.getDocByName('bar.biz'));
 }
 
 exports.testIgnoredIsNotFound = function () {

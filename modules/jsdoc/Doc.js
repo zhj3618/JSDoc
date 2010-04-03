@@ -111,6 +111,9 @@ Doc.prototype.parse = function(commentSrc) {
  				doc.isa = 'namespace';
  				if ($.text) { doc.name = $.text; }
  			break;
+ 			case 'class':
+ 				doc.isa = 'constructor';
+ 			break;
  			case 'constructor':
  				doc.isa = 'constructor';
  				if ($.text) { doc.name = $.text; }
