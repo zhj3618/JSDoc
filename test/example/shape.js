@@ -212,6 +212,7 @@ Rectangle.prototype.getArea = Rectangle_GetArea;
 
 /**
  * Get the value of the width for the Rectangle
+ * @method Rectangle#getWidth
  * @type int
  * @see #setWidth
  */
@@ -222,7 +223,8 @@ function Rectangle_GetWidth(){
 /**
  * Get the value of the height for the Rectangle.
  * Another getter is the <a href="Shape.html#getColor">Shape.getColor()</a> method in the 
- * <a href="Shape.html#">base Shape class</a>.  
+ * <a href="Shape.html#">base Shape class</a>.
+ * @method Rectangle#getHeight
  * @return The height of this Rectangle
  * @type int
  * @see #setHeight
@@ -233,6 +235,7 @@ function Rectangle_GetHeight(){
 
 /**
  * Set the width value for this Rectangle.
+ * @method Rectangle#setWidth
  * @param {int} width The width value to be set
  * @see #setWidth
  */
@@ -242,6 +245,7 @@ function Rectangle_SetWidth(width){
 
 /**
  * Set the height value for this Rectangle.
+ * @method Rectangle#setHeight
  * @param {int} height The height value to be set
  * @see #getHeight
  */
@@ -251,6 +255,7 @@ function Rectangle_SetHeight(height){
 
 /**
  * Get the value for the total area of this Rectangle
+ * @method Rectangle#getArea
  * @return total area of this Rectangle
  * @type int
  */
@@ -290,6 +295,7 @@ Square.prototype.setHeight = Square_SetHeight;
 
 /**
  * Set the width value for this Square.
+ * @method Square#setWidth
  * @param {int} width The width value to be set
  * @see #getWidth
  */
@@ -300,6 +306,7 @@ function Square_SetWidth(width){
 /**
  * Set the height value for this Square 
  * Sets the <a href="Rectangle.html#height">height</a> attribute in the Rectangle.
+ * @method Square#setHeight
  * @param {int} height The height value to be set
  */
 function Square_SetHeight(height){
@@ -343,6 +350,7 @@ Circle.prototype.setRadius = Circle_SetRadius;
 
 /**
  * Get the radius value for this Circle
+ * @method Circle#getRadius
  * @type int
  * @see #setRadius
  */
@@ -352,6 +360,7 @@ function Circle_GetRadius(){
 
 /** 
  * Set the radius value for this Circle
+ * @method Circle#setRadius
  * @param {int} radius The radius value to set
  * @see #getRadius
  */
@@ -362,6 +371,8 @@ function Circle_SetRadius(radius){
 /** 
  * An example of a  class (static) method that acts as a factory for Circle
  * objects. Given a radius value, this method creates a new Circle.
+ * @static
+ * @method Circle#createCircle
  * @param {int} radius The radius value to use for the new Circle.
  * @type Circle
  */
@@ -408,6 +419,7 @@ Coordinate.prototype.setY = Coordinate_SetY;
 
 /**
  * Gets the x portion of the Coordinate.
+ * @method Coordinate#getX
  * @type int
  * @see #setX
  */
@@ -417,6 +429,7 @@ function Coordinate_GetX(){
 
 /** 
  * Get the y portion of the Coordinate.
+ * @method Coordinate#getY
  * @type int
  * @see #setY
  */
@@ -426,6 +439,7 @@ function Coordinate_GetY(){
 
 /**
  * Sets the x portion of the Coordinate.
+ * @method Coordinate#setX
  * @param {int} x The x value to set
  * @see #getX
  */
@@ -435,6 +449,7 @@ function Coordinate_SetX(x){
 
 /** 
  * Sets the y portion of the Coordinate.
+ * @method Coordinate#setY
  * @param {int} y The y value to set
  * @see #getY
  */
@@ -462,6 +477,7 @@ ShapeFactory.prototype = {
 
 /**
  * An example of a singleton class
+ * @constructor 
  */
 MySingletonShapeFactory = new function(){
 

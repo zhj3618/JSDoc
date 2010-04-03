@@ -10,12 +10,11 @@ function sample() { // constructors without @names
 	 */
 	/**@constructor*/ function Bar(a, b) { } // code with no @name tag
 	
-	/** @desc space after
+	/** @desc uses the `new` keyword
 		@constructor
 	 */
 	
-	function
-	Caz(c, d) {
+	Caz = new function (c, d) {
 	}
 	 
 	/** @desc a Caz.Dop
@@ -75,6 +74,9 @@ exports.testBasic = function () {
 
 exports.testNoName = function () {
 	assertEqual('Bar', docSet.docs[1].name);
+}
+
+exports.testNewFunctionConstructor = function () {
 	assertEqual('Caz', docSet.docs[2].name);
 }
 

@@ -154,6 +154,14 @@ Doc.prototype.parse = function(commentSrc) {
 	}
 }
 
+Doc.prototype.addIsa = function(nodeType) {
+	if (!this.isa) {
+		if (nodeType === Token.FUNCTION) {
+			this.isa = 'method';
+		}
+	}
+}
+
 /**
 	Remove JsDoc comment artifacts. Trims white space.
 	@private

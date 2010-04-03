@@ -53,7 +53,11 @@ var nodeHandlers = [
 				if (commentSrc = left.jsDoc) {
 					doc = new Doc(commentSrc);
 					if ( !doc.hasTag('name') ) {
-						name = docName.resolveThis(name, left, doc.getTag('memberof'));
+						var memberof = doc.getTag('memberof');
+						
+						doc.addIsa(node.getRight().type);
+						
+						name = docName.resolveThis(name, left, memberof);
 						doc.setName(name);
 						doc.addMeta(node);
 						docs.push(doc);
@@ -108,6 +112,8 @@ var nodeHandlers = [
 				doc = new Doc(commentSrc);
 	
 				if ( !doc.hasTag('name') ) {
+					doc.addIsa(node.type);
+
 					name = docName.resolveThis(node.name, node, doc.getTag('memberof'));
 					doc.setName(name);
 					doc.addMeta(node);
@@ -121,7 +127,7 @@ var nodeHandlers = [
 	,
 	
 	/**
-		Handle documented bare name, on left side of an anonymous function, with no @name tag
+		Handle documented bare name, on left side of an anonymous function lit, with no @name tag
 		@private
 		@function
 		@example
@@ -141,13 +147,52 @@ var nodeHandlers = [
 					doc = new Doc(commentSrc);
 	
 					if ( !doc.hasTag('name') ) {
+						doc.addIsa(node.right.type);
+						
 						name = docName.resolveThis(nodeToString(node.left), node, doc.getTag('memberof'));
+						/*debug*///print(">>> "+name);
+						
 						docName.anons.push([node.right, name]);
 						doc.setName(name, doc);
 						doc.addMeta(node, doc);
 						docs.push(doc);
 						retVal = true;
 					}
+				}
+			}
+		}
+		return retVal;
+	}
+	,
+	
+	/**
+		Handle documented bare name, on left side of an anonymous function constructor, with no @name tag
+		@private
+		@function
+		@example
+	     /** blah. *\/
+	     foo = new function() {
+	     }
+	 */
+	function handleFunctionConstructor(node, docs) {
+		var commentSrc,
+			doc,
+			name,
+			retVal = false;
+		
+		if (node.type === Token.ASSIGN) {
+			if (node.right.type === Token.NEW && node.right.getTarget().type === Token.FUNCTION) {
+				if (commentSrc = node.jsDoc) {
+					doc = new Doc(commentSrc);
+					
+					name = docName.resolveThis(nodeToString(node.left), node, doc.getTag('memberof'));
+			
+					docName.anons.push([node.right.getTarget(), name]);
+					
+					doc.setName(name, doc);
+					doc.addMeta(node, doc);
+					docs.push(doc);
+					retVal = true;
 				}
 			}
 		}
@@ -197,7 +242,6 @@ var nodeHandlers = [
 		return retVal;
 	}
 ];
-
 
 /**
 	Represents a JsDoc comment in the source code.
