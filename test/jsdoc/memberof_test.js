@@ -1,8 +1,12 @@
 function sample() {
-	var foo = {}, bar;
+	var foo = {}, Bar = function(){};
 	
-	/** This is documented.
+	/** 
 		@namespace foo
+	*/
+	
+	/** 
+		@constructor Bar
 	*/
 	
 	/** typical memberof.
@@ -22,6 +26,18 @@ function sample() {
 		@member foo
 	*/
 	foo.fuz = {};
+	
+	/** Memberof prototype.
+		@property baz
+		@memberOf Bar.prototype
+	*/
+	Bar.prototype.baz = 1;
+	
+	/** Memberof hash.
+		@property bef
+		@member Bar#
+	*/
+	Bar.prototype.bef = 1;
 }
 
 
@@ -55,4 +71,20 @@ exports.testmember = function () {
 	assertEqual(doc.name, 'foo.fuz');
 	assertEqual(doc.memberof, 'foo');
 	assertEqual(doc.shortname, 'fuz');
+}
+
+exports.testmember = function () {
+	var doc = docSet.getDocByName('Bar#baz');
+	assertNotNull(doc);
+	assertEqual(doc.name, 'Bar#baz');
+	assertEqual(doc.memberof, 'Bar#');
+	assertEqual(doc.shortname, 'baz');
+}
+
+exports.testmember = function () {
+	var doc = docSet.getDocByName('Bar#bef');
+	assertNotNull(doc);
+	assertEqual(doc.name, 'Bar#bef');
+	assertEqual(doc.memberof, 'Bar#');
+	assertEqual(doc.shortname, 'bef');
 }
