@@ -136,6 +136,9 @@ Doc.prototype.parse = function(commentSrc) {
  					if ($.text) { doc.name = $.text; }
  				}
  			break;
+ 			case 'member':
+ 				if ($.text) { doc.memberof = $.text; }
+ 			break;
  			case 'description':
  			case 'desc':
  				doc.description = $.text;

@@ -56,8 +56,8 @@ var nodeHandlers = [
 		@example
 		
 		ns = {
-	     /** blah *\/
-	     foo: function(){}
+	      /** blah *\/
+	      foo: function(){}
 	    }
 	 */
 	function handleProperty(node, docs) {
