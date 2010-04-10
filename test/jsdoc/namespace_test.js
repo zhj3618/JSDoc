@@ -41,6 +41,7 @@ exports.setUp = exports.tearDown = function() {}
 
 exports.testNamespaceName = function () {
 	var docSet = parseDocs('apps/jsdoc-toolkit/test/jsdoc/', 'namespace_test.js');
+	/*debug*///docSet.docs.forEach(function($) { print('doc name: '+$.name); });
 	
 	// can find all doc comments
 	assertEqual(docSet.docs.length, 4);
@@ -55,5 +56,5 @@ exports.testNamespaceName = function () {
 	assertEqual('namespace', docSet.docs[2].isa);
 	
 	assertEqual('ns2.ns3.ns4', docSet.docs[3].name);
-	assertEqual('A description.', docSet.docs[3].description);
+	assertEqual('A description.', docSet.docs[3].desc);
 }

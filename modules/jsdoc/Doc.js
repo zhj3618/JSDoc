@@ -5,7 +5,7 @@ include('jsdoc/Tag');
 
 var Doc = function(commentSrc) {
 	this.commentSrc = unwrapComment(commentSrc);
-	
+	this.commentSrc = fixDesc(this.commentSrc);
 	this.parse(this.commentSrc);
 }
 
@@ -143,7 +143,7 @@ Doc.prototype.parse = function(commentSrc) {
 				if ($.text) { doc.name = $.text; }
  			break;
  			case 'desc':
- 				doc.description = $.text;
+ 				doc.desc = $.text;
  			break;
 		}
 		
@@ -176,4 +176,18 @@ function unwrapComment(commentSrc) {
 	
 	// TODO keep leading white space for @examples
 	return commentSrc ? commentSrc.replace(/(^\/\*\*\s*|\s*\*\/$)/g, "").replace(/^\s*\* ?/gm, "") : "";
+}
+
+/**
+	Add a @desc tag if none exists on untagged text at start of comment.
+	@private
+	@function fixDesc
+	@param {string} commentSrc
+	@return {string} With needed @desc tag added.
+ */
+function fixDesc(commentSrc) {
+	if (!/^\s*@/.test(commentSrc)) {
+		commentSrc = '@desc ' + commentSrc;
+	}
+	return commentSrc;
 }

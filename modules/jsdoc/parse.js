@@ -96,7 +96,7 @@ DocSet.prototype.toJSON = function() {
 		json.push({
 			shortname: doc.shortname,
 			name: doc.name,
-			description: doc.description,
+			desc: doc.desc,
 			member: doc.member,
 			isa: doc.isa
 		});
