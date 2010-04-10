@@ -1,4 +1,5 @@
 exports.Isa                 = require('test/jsdoc/isa_test');
+exports.Desc                = require('test/jsdoc/desc_test');
 exports.Ignore              = require('test/jsdoc/ignore_test');
 exports.Memberof            = require('test/jsdoc/memberof_test');
 exports.MethodName          = require('test/jsdoc/method_name_test');
