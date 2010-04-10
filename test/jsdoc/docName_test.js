@@ -7,7 +7,7 @@ exports.testSimple = function () {
 	assertEqual(
 		{
 			name: 'foo',
-			memberof: '',
+			member: '',
 			shortname: 'foo',
 			isinner: false,
 			isstatic: false
@@ -20,7 +20,7 @@ exports.testStatic = function () {
 	assertEqual(
 		{
 			name: 'foo.bar',
-			memberof: 'foo',
+			member: 'foo',
 			shortname: 'bar',
 			isinner: false,
 			isstatic: true
@@ -33,7 +33,7 @@ exports.testInner = function () {
 	assertEqual(
 		{
 			name: 'foo-bar',
-			memberof: 'foo',
+			member: 'foo',
 			shortname: 'bar',
 			isinner: true,
 			isstatic: false
@@ -46,7 +46,7 @@ exports.testInstance = function () {
 	assertEqual(
 		{
 			name: 'foo#bar',
-			memberof: 'foo#',
+			member: 'foo#',
 			shortname: 'bar',
 			isinner: false,
 			isstatic: false
@@ -55,11 +55,11 @@ exports.testInstance = function () {
 	);
 };
 
-exports.testMemberof = function () {
+exports.testmember = function () {
 	assertEqual(
 		{
 			name: 'foo#bar',
-			memberof: 'foo#',
+			member: 'foo#',
 			shortname: 'bar',
 			isinner: false,
 			isstatic: false
@@ -68,11 +68,11 @@ exports.testMemberof = function () {
 	);
 };
 
-exports.testMemberofStatic = function () {
+exports.testmemberStatic = function () {
 	assertEqual(
 		{
 			name: 'foo.bar',
-			memberof: 'foo',
+			member: 'foo',
 			shortname: 'bar',
 			isinner: false,
 			isstatic: true
@@ -81,11 +81,11 @@ exports.testMemberofStatic = function () {
 	);
 };
 
-exports.testMemberofInner = function () {
+exports.testmemberInner = function () {
 	assertEqual(
 		{
 			name: 'foo-bar',
-			memberof: 'foo',
+			member: 'foo',
 			shortname: 'bar',
 			isinner: true,
 			isstatic: false
@@ -98,7 +98,7 @@ exports.testLongname = function () {
 	assertEqual(
 		{
 			name: 'foo.bar#baz',
-			memberof: 'foo.bar#',
+			member: 'foo.bar#',
 			shortname: 'baz',
 			isinner: false,
 			isstatic: false
@@ -109,7 +109,7 @@ exports.testLongname = function () {
 	assertEqual(
 		{
 			name: 'foo#bar.baz',
-			memberof: 'foo#bar',
+			member: 'foo#bar',
 			shortname: 'baz',
 			isinner: false,
 			isstatic: true
@@ -122,7 +122,7 @@ exports.testStrangename = function () {
 	assertEqual(
 		{
 			name: '$f **.b@^1#b@z=',
-			memberof: '$f **.b@^1#',
+			member: '$f **.b@^1#',
 			shortname: 'b@z=',
 			isinner: false,
 			isstatic: false
@@ -135,7 +135,7 @@ exports.testStrangename = function () {
 	assertEqual(
 		{
 			name: '"f.oo"',
-			memberof: '',
+			member: '',
 			shortname: '"f.oo"',
 			isinner: false,
 			isstatic: false
@@ -146,7 +146,7 @@ exports.testStrangename = function () {
 	assertEqual(
 		{
 			name: '"f##"#bar',
-			memberof: '"f##"#',
+			member: '"f##"#',
 			shortname: 'bar',
 			isinner: false,
 			isstatic: false
@@ -157,7 +157,7 @@ exports.testStrangename = function () {
 	assertEqual(
 		{
 			name: '"f.#.#"."b#r"#"b.z"',
-			memberof: '"f.#.#"."b#r"#',
+			member: '"f.#.#"."b#r"#',
 			shortname: '"b.z"',
 			isinner: false,
 			isstatic: false
@@ -168,7 +168,7 @@ exports.testStrangename = function () {
 	assertEqual(
 		{
 			name: 'one."two.three"',
-			memberof: 'one',
+			member: 'one',
 			shortname: '"two.three"',
 			isinner: false,
 			isstatic: true
@@ -180,7 +180,7 @@ exports.testStrangename = function () {
 	assertEqual(
 		{
 			name: 'one.two.th\"ree\"',
-			memberof: 'one.two',
+			member: 'one.two',
 			shortname: 'th\"ree\"',
 			isinner: false,
 			isstatic: true
@@ -191,7 +191,7 @@ exports.testStrangename = function () {
 	assertEqual(
 		{
 			name: '"f##"#"\"b#r,\" she said."',
-			memberof: '"f##"#',
+			member: '"f##"#',
 			shortname: '"\"b#r,\" she said."',
 			isinner: false,
 			isstatic: false

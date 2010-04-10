@@ -25,7 +25,7 @@ function sample() {
  	ns2.ns3 = {
  		/**
  			@namespace ns4
- 			@memberof ns2.ns3
+ 			@member ns2.ns3
  			@desc A description.
  		 */
  		ns4: function() {} // like @name ns2.ns3.ns4

@@ -44,9 +44,9 @@ function sample() { // constructors without @names
 		@constructor */
 	Foo["Gub"]["Jaz"] = function() {}
 	
-	/** @desc Name in code, @memberof in the comment.
+	/** @desc Name in code, @member in the comment.
 		@constructor
-		@memberof Loo
+		@member Loo
 	 */
 	Kub = function() {}
 	Loo.Kub = Kub;
@@ -83,19 +83,19 @@ exports.testNewFunctionConstructor = function () {
 	assertNotNull(doc);
 }
 
-exports.testFindMemberof = function () {
+exports.testFindmember = function () {
 	var doc = docSet.getDocByName('Caz.Dop');
 	assertNotNull(doc);
 	assertEqual(doc.shortname, 'Dop');
-	assertEqual(doc.memberof, 'Caz');
+	assertEqual(doc.member, 'Caz');
 }
 
-exports.testMemberofGiven = function () {
+exports.testmemberGiven = function () {
 	var doc = docSet.getDocByName('Loo.Kub');
 	assertNotNull(doc);
 	
 	assertEqual(doc.shortname, 'Kub');
-	assertEqual(doc.memberof, 'Loo');
+	assertEqual(doc.member, 'Loo');
 }
 
 exports.testVarAssign = function () {

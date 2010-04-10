@@ -14,7 +14,7 @@ function sample() {
 		/** @methodOf Foo# */
 		bar2: myMethod,
 		
-		/** @memberOf Foo# */
+		/** @member Foo# */
 		fiz: {
 			/** @methodOf Foo#fiz */
 			'bar3': function(){},

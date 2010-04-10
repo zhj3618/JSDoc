@@ -17,29 +17,29 @@ function sample() { // no code
 	
 	/**
 		@name fee
-		@memberof foo
+		@member foo
 	 */
 	
 	/**
 		@name gee
-		@memberof goo
+		@member goo
 		@static
 	 */
 	 
 	/**
 		@name hee
-		@memberof hoo
+		@member hoo
 		@inner
 	 */
 	 
 	/**
 		@name jee
-		@memberof joo.jah
+		@member joo.jah
 	 */
 	
 	/**
 		@name kee
-		@memberof koo#kup
+		@member koo#kup
 	 */
 	
 	/**
@@ -70,7 +70,7 @@ function sample2() { // with code
 		this.cud = function() { // Foo#cud
 		}
 		
-		/** @desc An @nameless this-method with no memberof tag.
+		/** @desc An @nameless this-method with no member tag.
 			@method
 		*/
 		this.dab = function() { // Foo#dab
@@ -90,7 +90,7 @@ function sample2() { // with code
 		@constructor
 	 */
 	Foo.Bar = function(c, d) {
-		/** @desc an @nameless this-method with no memberof tag.
+		/** @desc an @nameless this-method with no member tag.
 			@method
 		*/
 		this.foo = function() { // Foo.Bar#foo
@@ -101,7 +101,7 @@ function sample2() { // with code
 		@constructor
 	 */
 	Piz = function(x, y) {
-		/** @desc an @nameless this-method with no memberof tag.
+		/** @desc an @nameless this-method with no member tag.
 			@method
 		*/
 		this.pep = function() { // Piz.pep
@@ -115,18 +115,18 @@ function sample2() { // with code
 		@constructor
 	 */
 	var Zat = function (x, y) {
-		/** @desc an @nameless this-constructor with no memberof tag.
+		/** @desc an @nameless this-constructor with no member tag.
 			@constructor
 		*/
 		this.Zoo = function() { // Zat#Zoo
-			/** @desc an @nameless nested this-method with no memberof tag.
+			/** @desc an @nameless nested this-method with no member tag.
 				@method
 			*/
 			this.zuz = function() { // Zat#Zoo#zuz
 			}
 		}
 		
-		/** @desc an @nameless this-method with no memberof tag.
+		/** @desc an @nameless this-method with no member tag.
 			@method
 		*/
 		this.zik = function() { // Zat#zik
@@ -175,7 +175,7 @@ exports.testNametagsDashedName = function () {
 	assertEqual('doo-dee', getDoc(docSet, 'doo-dee').name);
 }
 
-exports.testNametagsWithMemberof = function () {
+exports.testNametagsWithMember = function () {
 	assertEqual('foo.fee', getDoc(docSet, 'foo.fee').name);
 }
 
@@ -189,12 +189,12 @@ exports.testNametagsWithInner = function () {
 	assertEqual(true, getDoc(docSet, 'hoo-hee').isinner);
 }
 
-exports.testNametagsNestedMemberof = function () {
+exports.testNametagsNestedMember = function () {
 	assertEqual('joo.jah.jee', getDoc(docSet, 'joo.jah.jee').name);
 	assertEqual(true, getDoc(docSet, 'joo.jah.jee').isstatic);
 }
 
-exports.testNametagsNestedHashedMemberof = function () {
+exports.testNametagsNestedHashedMember = function () {
 	assertEqual('koo#kup.kee', getDoc(docSet, 'koo#kup.kee').name);
 	assertEqual(true, getDoc(docSet, 'koo#kup.kee').isstatic);
 }
@@ -208,17 +208,17 @@ exports.testNametagsNestedPropertyofHashed = function () {
 	assertEqual('moo.mah#mee', getDoc(docSet, 'moo.mah#mee').name);
 }
 
-exports.testThisWithMemberof = function () {
+exports.testThisWithMember = function () {
 	assertEqual('Foo#bar', getDoc(docSet, 'Foo#bar').name);
 	assertEqual('Foo#cud', getDoc(docSet, 'Foo#cud').name);
 	assertEqual('Foo#erp', getDoc(docSet, 'Foo#erp').name);
 }
 
-exports.testThisWithNoMemberof = function () {
+exports.testThisWithNoMember = function () {
 	assertEqual('Foo#dab', getDoc(docSet, 'Foo#dab').name);
 }
 
-exports.testThisWithNoMemberofAnon = function () {
+exports.testThisWithNoMemberAnon = function () {
 	assertEqual('Foo.Bar#foo', getDoc(docSet, 'Foo.Bar#foo').name);
 	assertEqual('Piz#pep',     getDoc(docSet, 'Piz#pep').name);
 	assertEqual('Zat#Zoo',     getDoc(docSet, 'Zat#Zoo').name);

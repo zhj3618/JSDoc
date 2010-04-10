@@ -11,7 +11,7 @@ function sample() {
 	
 	/**
 		@name bar1
-		@memberOf Foo#
+		@member Foo#
 		@method
 	 */
 	bar1 = function() {
@@ -20,7 +20,7 @@ function sample() {
 		
 		//   @methodOf x
 		// equates to
-		//   @memberOf x
+		//   @member x
 		//   @method
 	};
 	
@@ -92,7 +92,7 @@ exports.testBasic = function () {
 	assertEqual(getDoc(docSet, 'Foo').name, 'Foo');
 }
 
-exports.testWithNameAndMemberofTag = function () {
+exports.testWithNameAndMemberTag = function () {
 	assertEqual(getDoc(docSet, 'Foo#bar1').name, 'Foo#bar1');
 }
 

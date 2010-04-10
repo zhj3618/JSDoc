@@ -9,35 +9,42 @@ function sample() {
 		@constructor Bar
 	*/
 	
-	/** typical memberof.
+	/** typical member.
 		@namespace fiz
-		@memberof foo
+		@member foo
 	*/
 	foo.fiz = {};
 	
-	/** Letter case shouldn't matter
+	/** @desc Letter case shouldn't matter
 		@method foz
-		@MEMBEROF foo
+		@member foo
 	*/
 	foo.foz = function() {};
 	
-	/** can shorten to just "@member".
+	/** @desc can use older synonym "@memberOf".
 		@property fuz
-		@member foo
+		@memberOf foo
 	*/
 	foo.fuz = {};
 	
-	/** Memberof prototype.
+	/** @desc member prototype.
 		@property baz
-		@memberOf Bar.prototype
+		@member Bar.prototype
 	*/
 	Bar.prototype.baz = 1;
 	
-	/** Memberof hash.
+	/** @desc member hash.
 		@property bef
 		@member Bar#
 	*/
 	Bar.prototype.bef = 1;
+	
+	/** @desc First member wins.
+		@property bib
+		@member Bar#
+		@member Gesundheit
+	*/
+	Bar.prototype.bib = 1;
 }
 
 
@@ -49,42 +56,50 @@ exports.setUp = exports.tearDown = function() {};
 var docSet = parseDocs('apps/jsdoc-toolkit/test/jsdoc/', 'memberof_test.js');
 /*debug*///docSet.docs.forEach(function($) { print('doc name: '+$.name); });
 
-exports.testmemberof = function () {
+exports.testMember = function () {
 	var doc = docSet.getDocByName('foo.fiz');
 	assertNotNull(doc);
 	assertEqual(doc.name, 'foo.fiz');
-	assertEqual(doc.memberof, 'foo');
+	assertEqual(doc.member, 'foo');
 	assertEqual(doc.shortname, 'fiz');
 }
 
-exports.testmemberofUpcase = function () {
+exports.testMemberUpcase = function () {
 	var doc = docSet.getDocByName('foo.foz');
 	assertNotNull(doc);
 	assertEqual(doc.name, 'foo.foz');
-	assertEqual(doc.memberof, 'foo');
+	assertEqual(doc.member, 'foo');
 	assertEqual(doc.shortname, 'foz');
 }
 
-exports.testmember = function () {
+exports.testMemberOfSynonym = function () {
 	var doc = docSet.getDocByName('foo.fuz');
 	assertNotNull(doc);
 	assertEqual(doc.name, 'foo.fuz');
-	assertEqual(doc.memberof, 'foo');
+	assertEqual(doc.member, 'foo');
 	assertEqual(doc.shortname, 'fuz');
 }
 
-exports.testmember = function () {
+exports.testMemberProto = function () {
 	var doc = docSet.getDocByName('Bar#baz');
 	assertNotNull(doc);
 	assertEqual(doc.name, 'Bar#baz');
-	assertEqual(doc.memberof, 'Bar#');
+	assertEqual(doc.member, 'Bar#');
 	assertEqual(doc.shortname, 'baz');
 }
 
-exports.testmember = function () {
+exports.testMemberHash = function () {
 	var doc = docSet.getDocByName('Bar#bef');
 	assertNotNull(doc);
 	assertEqual(doc.name, 'Bar#bef');
-	assertEqual(doc.memberof, 'Bar#');
+	assertEqual(doc.member, 'Bar#');
 	assertEqual(doc.shortname, 'bef');
+}
+
+exports.testMemberMulti = function () {
+	var doc = docSet.getDocByName('Bar#bib');
+	assertNotNull(doc);
+	assertEqual(doc.name, 'Bar#bib');
+	assertEqual(doc.member, 'Bar#');
+	assertEqual(doc.shortname, 'bib');
 }

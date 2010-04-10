@@ -11,18 +11,18 @@ include('jsdoc/common');
 /**
 	Combine parts up into name.
  */
-function connect(name, memberof, opts) {
-	if (memberof.endsWith('#')) {
+function connect(name, member, opts) {
+	if (member.endsWith('#')) {
 		opts.isstatic = false;
-		return memberof + name;
+		return member + name;
 	}
 	
 	if (opts.isinner) {
-		return memberof + '-' + name;
+		return member + '-' + name;
 	}
 	else {
 		opts.isstatic = true;
-		return memberof + '.' + name;
+		return member + '.' + name;
 	}
 };
 
@@ -31,7 +31,7 @@ function connect(name, memberof, opts) {
  */
 function divide(name, opts) {
 	var parts = {
-		memberof: '',
+		member: '',
 		name: name,
 		shortname: name
 	};
@@ -43,11 +43,11 @@ function divide(name, opts) {
 	) {
 
 		parts.connector = RegExp.$2;
-		parts.memberof  = RegExp.$1;
+		parts.member  = RegExp.$1;
 		parts.shortname = RegExp.$3 || name;
 		
 		parts.name = name;
-		parts.memberof += (parts.connector === '#'? '#' : '');
+		parts.member += (parts.connector === '#'? '#' : '');
 		
 		if (parts.connector === '-') { opts.isinner = true; }
 		if (parts.connector === '.') { opts.isstatic = true; }
@@ -59,7 +59,7 @@ function divide(name, opts) {
 /**
 	Determine what the various name related values are from the tags present.
  */
-function docName(name, memberof, props) {
+function docName(name, member, props) { /*debug*///print('docName('+name+', '+member+', '+props+')');
 	if (!name) {
 		throw new Error('Missing required value for @name.');
 	}
@@ -68,24 +68,27 @@ function docName(name, memberof, props) {
 	
 	var result = {
 		name: '',
-		memberof: '',
+		member: '',
 		shortname: ''
 	};
 	
-	if (memberof) {
+	if (member) {
+		// fix prototype
+		member = member.replace(/\.prototype(\.|$)/g, '#');
+		
 		// fix this
 		if (name.indexOf('this.') === 0) {
 			name = name.replace('this.', '');
 		}
 		
-		result.memberof = memberof;
+		result.member = member;
 		result.shortname = name;
-		result.name = connect(result.shortname, result.memberof, props);
+		result.name = connect(result.shortname, result.member, props);
 	}
 	else {
 		var parts = divide(name, props);
 		
-		result.memberof = parts.memberof;
+		result.member = parts.member;
 		result.shortname = parts.shortname;
 		result.name = parts.name;
 	}
@@ -127,15 +130,15 @@ docName.fromSource = function(sourceName) {
  */
 docName.derive = function(doc) {
 	var nameTag     = doc.name     || doc.getTag('name'),
-		memberofTag = doc.memberof || doc.getTag('memberof'),
+		memberTag   = doc.member   || doc.getTag('member'),
 		isinnerTag  = doc.isinner  || doc.hasTag('inner'),
 		isstaticTag = doc.isstatic || doc.hasTag('static'),
 		name;
-	name = docName(nameTag, memberofTag, {isstatic: isstaticTag, isinner: isinnerTag});
+	name = docName(nameTag, memberTag, {isstatic: isstaticTag, isinner: isinnerTag});
 	
 	doc.name      = name.name;
 	doc.shortname = name.shortname;
-	doc.memberof  = name.memberof;
+	doc.member    = name.member;
 	doc.isstatic  = name.isstatic;
 	doc.isinner   = name.isinner;
 }
@@ -146,27 +149,27 @@ docName.derive = function(doc) {
 	@function
 	@param {string} name Possibly starting with `this.`
 	@param {org.mozilla.javascript.ast.AstNode} node The node in question.
-	@param {string} [memberof] If the user provided a @memberof tag, we can use it.
+	@param {string} [member] If the user provided a @member tag, we can use it.
 	
 	@return {string} The resolved namepath.
  */
-docName.resolveThis = function(name, node, memberof) {
+docName.resolveThis = function(name, node, member) {
 	var enclosingFunction;
 	
 	if (name.indexOf('this.') === 0) {
-		if (!memberof) {
+		if (!member) {
 			if (enclosingFunction = node.getEnclosingFunction()) {
-				memberof = enclosingFunction.getName(); // empty string for anonymous functions
+				member = enclosingFunction.getName(); // empty string for anonymous functions
 			}
 			
-			if (memberof) {
-				name = memberof + '#' + name.slice(5); // replace this. with foo#
+			if (member) {
+				name = member + '#' + name.slice(5); // replace this. with foo#
 			}
 			else { // it's an anonymous function
-				memberof = docName.nameFromAnon(enclosingFunction);
+				member = docName.nameFromAnon(enclosingFunction);
 				
-				if (memberof) {
-					name = memberof + '#' + name.slice(5); // replace `this.` with memberof
+				if (member) {
+					name = member + '#' + name.slice(5); // replace `this.` with member
 				}
 			}
 		}

@@ -25,14 +25,14 @@ function publish(/**DocSet*/docSet, /**File*/destination) {
 	});
 		
 	allClasses.forEach(function(classDoc) {
-		var instance = classDoc.name + '#';
+		var instanceName = classDoc.name + '#';
 		
 		classDoc.methods = docSet.docs.filter(function(doc) {
-			return doc.memberof === instance && doc.isa === 'method';
+			return doc.member === instanceName && doc.isa === 'method';
 		});
 		
 		classDoc.properties = docSet.docs.filter(function(doc) {
-			return doc.memberof === instance && doc.isa === 'property';
+			return doc.member === instanceName && doc.isa === 'property';
 		});
 	});
 	

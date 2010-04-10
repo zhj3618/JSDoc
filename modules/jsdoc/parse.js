@@ -97,7 +97,7 @@ DocSet.prototype.toJSON = function() {
 			shortname: doc.shortname,
 			name: doc.name,
 			description: doc.description,
-			memberof: doc.memberof,
+			member: doc.member,
 			isa: doc.isa
 		});
 	}

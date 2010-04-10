@@ -72,11 +72,11 @@ var nodeHandlers = [
 			if (commentSrc = left.jsDoc) {
 				doc = new Doc(commentSrc);
 				if ( !doc.hasTag('name') ) {
-					var memberof = doc.getTag('memberof');
+					var member = doc.getTag('member');
 					
 					doc.addIsa(node.getRight().type);
 					
-					name = docName.resolveThis(name, left, memberof);
+					name = docName.resolveThis(name, left, member);
 					doc.setName(name);
 					doc.addMeta(node);
 					docs.push(doc);
@@ -109,7 +109,7 @@ var nodeHandlers = [
 				if ( !doc.hasTag('name') ) {
 					doc.addIsa(node.type);
 
-					name = docName.resolveThis(node.name, node, doc.getTag('memberof'));
+					name = docName.resolveThis(node.name, node, doc.getTag('member'));
 					doc.setName(name);
 					doc.addMeta(node);
 					docs.push(doc);
@@ -144,7 +144,7 @@ var nodeHandlers = [
 					if ( !doc.hasTag('name') ) {
 						doc.addIsa(node.right.type);
 						
-						name = docName.resolveThis(nodeToString(node.left), node, doc.getTag('memberof'));
+						name = docName.resolveThis(nodeToString(node.left), node, doc.getTag('member'));
 						/*debug*///print(">>> "+name);
 						
 						docName.anons.push([node.right, name]);
@@ -181,7 +181,7 @@ var nodeHandlers = [
 					doc = new Doc(commentSrc);
 					if ( !doc.hasTag('name') ) {
 						doc.addIsa(node.right.getTarget().type);
-						name = docName.resolveThis(nodeToString(node.left), node, doc.getTag('memberof'));
+						name = docName.resolveThis(nodeToString(node.left), node, doc.getTag('member'));
 				
 						docName.anons.push([node.right.getTarget(), name]);
 						
@@ -226,7 +226,7 @@ var nodeHandlers = [
 						if ( !doc.hasTag('name') ) {
 							doc.addIsa(n.initializer.type);
 							
-							name = docName.resolveThis(n.target.string, n.target, doc.getTag('memberof'));
+							name = docName.resolveThis(n.target.string, n.target, doc.getTag('member'));
 							docName.anons.push([n.initializer, name]);
 							doc.setName(name, doc);
 							doc.addMeta((node.jsDoc? node : n), doc);

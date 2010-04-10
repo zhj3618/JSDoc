@@ -10,7 +10,7 @@ function sample() {
 	/**
 		@constructor
 		@name Foo1
-		@memberOf ns
+		@member ns
 	 */
 	Foo1 = function() {
 		// most verbose technique
@@ -63,7 +63,7 @@ exports.testBasic = function () {
 	assertNotNull(docSet.getDocByName('ns'));
 }
 
-exports.testMemberofTag = function () {
+exports.testMemberTag = function () {
 	assertNotNull(docSet.getDocByName('ns.Foo1'));
 }
 

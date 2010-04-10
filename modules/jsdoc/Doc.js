@@ -74,6 +74,10 @@ Doc.prototype.getTags = function(name) {
 	return (tags.length)? tags : null;
 }
 
+Doc.prototype.addTag = function(name, text) {
+	this.tags.unshift(new Tag(name, text));
+}
+
 /**
 	Given the raw text of the doc comment, finds tags and populates name-based Doc properties.
 	@private
@@ -100,6 +104,10 @@ Doc.prototype.parse = function(commentSrc) {
 			if (name) { tags.push( new Tag(name, text) ); }
 		}
 	});
+	
+	// keep a reference to any/all tags, so they can be used in template later
+	this.tags = tags;
+	
 	// clean up, fill in any implied information, validate
 	var doc = this;
 	tags.forEach(function($) {
@@ -120,7 +128,7 @@ Doc.prototype.parse = function(commentSrc) {
  			break;
  			case 'methodof':
  				doc.isa = 'method';
- 				if ($.text) { doc.memberof = $.text; }
+ 				if ($.text) { doc.member = $.text; }
  			break;
  			case 'method':
  				doc.isa = 'method';
@@ -128,28 +136,19 @@ Doc.prototype.parse = function(commentSrc) {
  			break;
  			case 'propertyof':
  				doc.isa = 'property';
- 				if ($.text) { doc.memberof = $.text; }
+ 				if ($.text) { doc.member = $.text; }
  			break;
  			case 'property':
- 				if (!doc.isa) {
- 					doc.isa = 'property';
- 					if ($.text) { doc.name = $.text; }
- 				}
+				doc.isa = 'property';
+				if ($.text) { doc.name = $.text; }
  			break;
- 			case 'member':
- 				if ($.text) { doc.memberof = $.text; }
- 			break;
- 			case 'description':
  			case 'desc':
  				doc.description = $.text;
  			break;
 		}
 		
-		if (doc.memberof) { doc.memberof = docName.fromSource(doc.memberof); }
+		if (doc.member) { doc.member = docName.fromSource(doc.member); }
 	});
-	
-	// keep a reference to any/all tags, so they can be used in template later
-	this.tags = tags;
 
 	// name may not be known yet, if it's defined in the source code
 	if (this.name) {
