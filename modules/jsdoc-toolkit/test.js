@@ -57,6 +57,14 @@ var test = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		catch(e) { fail(e.message); }
 	}
 	
+	test.isSame = function(expected, actual, message) {
+		try {
+			assert.isSame(expected, actual, message);
+			pass(message);
+		}
+		catch(e) { fail(e.message); }
+	}
+	
 	test.throwsError = function(block, type, message) {
 		try {
 			assert.throwsError(block, type, message);

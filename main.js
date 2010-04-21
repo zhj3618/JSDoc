@@ -4,6 +4,11 @@ load(HOME + '/lib/require2.js'), require.dir = HOME + '/modules/';
 
 var jsdoc  = require('jsdoc-toolkit');
 
+if ( jsdoc.opts.help ) {
+	print( jsdoc.help() );
+	quit();
+}
+		
 // run unit tests?
 if (jsdoc.opts.test) {
 	require('jsdoc-toolkit/tests/all');

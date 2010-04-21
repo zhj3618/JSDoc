@@ -19,4 +19,11 @@ var jsdoc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		@type Object
 	 */
 	jsdoc.opts = opts.get();
+	
+	/**
+		Get the help text for the command line options.
+		@name jsdoc.help
+		@type Function
+	 */
+	jsdoc.help = function() { return opts.help(); }
 })();
