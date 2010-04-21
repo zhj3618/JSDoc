@@ -1,0 +1,26 @@
+<html>
+<h1>Hello {=name}</h1>
+
+{:select profile}
+<p>
+    {=age}<br/>
+    {=gender}<br/>
+</p>
+{/:select}
+
+<p>Your age is {=profile/age}</p>
+
+<ul>
+{:reduce articles}
+    <li>{=title} - {=count}</li>
+{:else}
+    <li>No articles found</li>    
+{/:reduce}
+</ul>
+
+{:if admin}
+    You have admin rights
+{:else}
+    You don't have admin rights
+{/:if}
+</html>
