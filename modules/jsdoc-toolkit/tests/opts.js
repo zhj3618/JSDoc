@@ -41,7 +41,7 @@ exports.testOptsOptionH = function() {
 exports.testOptsOptionT = function() {
 	var app = {}; // dummy
 	
-	test.expect(3);
+	test.expect(4);
 	
 	app.opts = opts.get();
 	
@@ -60,6 +60,13 @@ exports.testOptsOptionT = function() {
 	
 	test.assertEqual(
 		'mytemplate', app.opts.template, 'shortname -t sets "template" option'
+	);
+	
+	opts.set(['--template', 'mytemplate']);
+	app.opts = opts.get();
+	
+	test.assertEqual(
+		'mytemplate', app.opts.template, 'longname --test sets "template" option'
 	);
 }
 
