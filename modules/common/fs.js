@@ -12,6 +12,9 @@ var fs = (typeof exports === 'undefined')? {} : exports; // like commonjs
 var defaultEncoding = 'utf-8';
 
 (function() {
+	var slash = java.lang.System.getProperty('file.separator') || '/',
+		File = Packages.java.io.File;
+	
 	fs.read = function(path, options) {
 		var options = options || {},
 			encoding = options.encoding || defaultEncoding;
@@ -33,6 +36,49 @@ var defaultEncoding = 'utf-8';
 		out.write(content);
 		out.flush();
 		out.close();
+	}
+	
+	/**
+	 * @type string[]
+	 * @param dir The starting directory to look in.
+	 * @param [recurse=1] How many levels deep to scan.
+	 * @returns An array of all the paths to files in the given dir.
+	 */
+	fs.ls = function(/**string*/ dir, /**number*/ recurse, _allFiles, _path) {
+		var files, file;
+	
+		if (_path === undefined) { // initially
+			_allFiles = [];
+			_path = [dir];
+		}
+		
+		if (_path.length === 0) { return _allFiles; }
+		if (recurse === undefined) { recurse = 1; }
+		
+		dir = new File(dir);
+		if (!dir.directory) { return [String(dir)]; }
+		files = dir.list();
+		
+		for (var f = 0, lenf = files.length; f < lenf; f++) {
+			file = String(files[f]);
+		
+			if (file.match(/^\.[^\.\/\\]/)) { continue; } // skip dot files
+	
+			if ((new File(_path.join(slash) + slash + file)).list()) { // it's a directory
+				_path.push(file);
+				
+				if (_path.length - 1 < recurse) {
+					fs.ls(_path.join(slash), recurse, _allFiles, _path);
+				}
+				_path.pop();
+			}
+			else { // it's a file	
+				_allFiles.push((_path.join(slash) + slash + file).replace(slash + slash, slash));
+	
+			}
+		}
+	
+		return _allFiles;
 	}
 
 })();
