@@ -10,7 +10,7 @@ var src = require('jsdoc-toolkit/src');
 exports.testGetFilePaths = function() {
 	var app = {}; // dummy
 	
-	test.expect(4);
+	test.expect(6);
 	
 	
 	test.assertEqual(
@@ -21,14 +21,25 @@ exports.testGetFilePaths = function() {
 	//print(filePaths.join('\n'));	
 	
 	test.assertEqual(
-		true, (filePaths.length > 1), 'filePaths(HOME) is not empty'
+		2, filePaths.length, 'filePaths(tests/data/src) returns 2 filepaths'
 	);
 	
 	test.assertEqual(
-		true, (filePaths[0].indexOf('one.js') > -1), 'file one.js was found'
+		filePaths[0].substr(-7), '/one.js', 'file one.js was found'
 	);
 	
 	test.assertEqual(
-		true, (filePaths[1].indexOf('two.js') > -1), 'file two.js was found'
+		filePaths[1].substr(-7), '/two.js', 'file two.js was found'
+	);
+	
+	
+	filePaths = src.getFilePaths([HOME+'/modules/jsdoc-toolkit/tests/data/'], 1);
+	test.assertEqual(
+		1, filePaths.length, 'filePaths(tests/data/, 1) returns 1 filepath'
+	);
+	
+	filePaths = src.getFilePaths([HOME+'/modules/jsdoc-toolkit/tests/data/'], 10);
+	test.assertEqual(
+		4, filePaths.length, 'filePaths(tests/data/, 4) returns 4 filepath'
 	);
 }

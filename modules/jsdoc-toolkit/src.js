@@ -11,13 +11,14 @@ var src = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 (function() {
 	var fs = fs || require('common/fs');
+	var sys = sys || require('common/sys');
 	
 	/**
 		Get the help text for the command line options.
 		@name src.getFilePaths
 		@type Function
 	 */
-	src.getFilePaths = function(searchPaths, depth) {
+	src.getFilePaths = function(searchPaths, depth) { /*debug*///print('src.getFilePaths('+searchPaths.toSource()+', '+depth+')');
 		var filePaths = [];
 		
 		searchPaths = searchPaths || [];
@@ -27,10 +28,11 @@ var src = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			filePaths = filePaths.concat(fs.ls($, depth));
 		});
 		
+		// TODO: allow user-defined filtering of files
 		filePaths = filePaths.filter(function($) {
 			return /.+\.js$/i.test($);
 		});
-		
+
 		return filePaths;
 	}
 	
