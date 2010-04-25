@@ -11,7 +11,7 @@ var src = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 (function() {
 	var fs = fs || require('common/fs');
-	var sys = sys || require('common/sys');
+	//var sys = sys || require('common/sys');
 	
 	/**
 		Get the help text for the command line options.

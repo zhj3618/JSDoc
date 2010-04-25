@@ -12,7 +12,7 @@ var fs = (typeof exports === 'undefined')? {} : exports; // like commonjs
 (function() {
 	var slash = java.lang.System.getProperty('file.separator') || '/',
 		File = Packages.java.io.File,
-		sys = sys || require('common/sys'),
+		//sys = sys || require('common/sys'),
 		defaultEncoding = 'utf-8';
 	
 	fs.read = function(path, options) {
