@@ -8,3 +8,4 @@ var test = require('jsdoc-toolkit/test');
 
 test.run(require('jsdoc-toolkit/tests/opts'));
 test.run(require('jsdoc-toolkit/tests/src'));
+test.run(require('jsdoc-toolkit/tests/parse'));

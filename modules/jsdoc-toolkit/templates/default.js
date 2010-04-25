@@ -15,7 +15,7 @@ var template = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 	template.publish = function(data, opts) {
 		var out = '';
-		var templateSrc = fs.read(HOME + 'modules/jsdoc-toolkit/templates/default/index.html');
+		var templateSrc = fs.read(HOME + 'modules/jsdoc-toolkit/templates/default/jsdoc.xml');
 		var template = templateEngine.compile(templateSrc);
 		
 		out = template(data);

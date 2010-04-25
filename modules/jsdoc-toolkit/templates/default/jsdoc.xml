@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<docs>{:reduce docs}
+	<doc>
+		<symbol id="{=id}">
+			<kind>{=kind}</kind>
+			<name>{=name}</name>
+			<desc>{=desc}</desc>
+			<memberof>{=memberof}</memberof>
+			{:if param}<params>{:reduce param}
+				<param><type>{=type}</type><name>{=name}</name></param>{/:reduce}
+			</params>{/:if}
+		</symbol>
+		{:if members}<members>{:reduce members}
+			<member>{=.}</member>{/:reduce}
+		</members>{/:if}
+		{:if overloads}<overloads>{:reduce overloads}
+			<overload id="{=id}">
+				<signature>{=signature}</signature>
+				<desc>{=desc}</desc>
+				{:if param}<params>{:reduce param}
+					<param><type>{=type}</type><name>{=name}</name></param>{/:reduce}
+				</params>{/:if}
+			</overload>{/:reduce}
+		</overloads>{/:if}
+	</doc>
+{/:reduce}</docs>

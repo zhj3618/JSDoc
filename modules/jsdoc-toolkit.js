@@ -11,7 +11,8 @@ var jsdoc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 (function() {
 	var opts = opts || require('jsdoc-toolkit/opts'),
-		src =   src || require('jsdoc-toolkit/src');
+		src =   src || require('jsdoc-toolkit/src'),
+		parse = parse || require('jsdoc-toolkit/parse');
 	
 	opts.set(global().arguments.slice(1)); // first argument is a the path to main.js
 	
@@ -30,5 +31,14 @@ var jsdoc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	jsdoc.help = function() { return opts.help(); }
 	
 	jsdoc.src = src.getFilePaths(jsdoc.opts._);
+	jsdoc.docSet = parse.docSet;
+	
+	jsdoc.parse = function(filepaths) {
+		var docset = [];
+		filepaths.forEach(function(filepath) {
+			parse.getDocs(filepath, docset);
+		});
+		return docset;
+	}
 	
 })();

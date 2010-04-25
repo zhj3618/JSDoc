@@ -1,26 +1,19 @@
-<html>
-<h1>Hello {=name}</h1>
-
-{:select profile}
-<p>
-    {=age}<br/>
-    {=gender}<br/>
-</p>
-{/:select}
-
-<p>Your age is {=profile/age}</p>
-
-<ul>
-{:reduce articles}
-    <li>{=title} - {=count}</li>
-{:else}
-    <li>No articles found</li>    
-{/:reduce}
-</ul>
-
-{:if admin}
-    You have admin rights
-{:else}
-    You don't have admin rights
-{/:if}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>JsDoc</title>
+</head>
+<body>
+	<span class="rundate">{=rundate}</span>
+	
+	<ol class="docs">
+	{:reduce docs}
+		<li class="doc">
+			<span class="isa">{=isa}</span>
+			<span class="name">{=name}</span>
+		</li>  
+	{/:reduce}
+	</ol>
+</body>
 </html>
