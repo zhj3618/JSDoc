@@ -39,13 +39,13 @@ var test = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			if (t.indexOf('test') === 0 && typeof module[t] === 'function') {
 				print('# '+t);
 				module[t]();
+				
+				if (expecting && counter !== expecting) {
+					fail('Expected ' + expecting + ' tests, actual: ' + counter);
+					delete counter;
+					delete expecting;
+				}
 			}
-		}
-		
-		if (expecting && counter !== expecting) {
-			fail('Expected ' + expecting + ' tests, actual: ' + counter);
-			delete counter;
-			delete expecting;
 		}
 	}
 
