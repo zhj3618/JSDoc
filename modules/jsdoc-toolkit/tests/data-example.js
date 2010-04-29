@@ -23,6 +23,6 @@ function Shape() {
 	@membership instance
 	@kind method
 	@desc Set or get the position of this shape.
-	@param {number} top
-	@param {number} left
+	@param {number} top The top value.
+	@param left
  */

@@ -5,6 +5,7 @@
  */
 var test = require('jsdoc-toolkit/test');
 var parse = require('jsdoc-toolkit/parse');
+var jsDump = require("narwhal-test/jsdump").jsDump;
 
 exports.testParseAPI = function() {
 	test.expect(2);
@@ -14,7 +15,7 @@ exports.testParseAPI = function() {
 	);
 	
 	test.assertEqual(
-		0, parse.docSet.length, 'parse.docSet is defined and has a length of 0'
+		0, parse.docSet.length, 'parse.docSet is defined and has an initial length of 0'
 	);
 }
 
@@ -26,6 +27,8 @@ exports.testParseGetDocs = function() {
 	parse.getDocs(filePaths[0]);
 	
 	var docSet = parse.docSet;
+
+//print(jsDump.parse(docSet)); quit();
 	
 	test.assertEqual(
 		3, parse.docSet.length, 'docSet has been populated by 3 docs'
@@ -55,6 +58,38 @@ exports.testParseDescProperty = function() {
 	
 	var shapeDocs = parse.docSet.getDocsByName('Shape');
 	test.assertEqual(
-		'A 2D shape.', shapeDocs[0].desc, 'Shape doc has property desc set to the first line of the comment.'
+		'A 2D shape.', shapeDocs[0].desc, 'Shape doc has property desc set to the first line of the comment'
+	);
+}
+
+exports.testParseParamsProperty = function() {
+	test.expect(6);
+	
+	var shapeDocs = parse.docSet.getDocsByName('Shape#position');
+	test.assertEqual(
+		'object', typeof shapeDocs[0].param, 'the param property is defined'
+	);
+	test.assertEqual(
+		2, shapeDocs[0].param.length, 'All params are found'
+	);
+	
+	var param1 = shapeDocs[0].param[0];
+
+	test.assertEqual(
+		'top', param1.pname, 'Param name is found'
+	);
+	
+	test.assertEqual(
+		'The top value.', param1.pdesc, 'Param desc is found'
+	);
+	
+	var param2 = shapeDocs[0].param[1];
+
+	test.assertEqual(
+		'left', param2.pname, 'Param name is found when no pdesc'
+	);
+	
+	test.assertEqual(
+		'', param2.pdesc, 'Param desc is "" when no pdesc'
 	);
 }

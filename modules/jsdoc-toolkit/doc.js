@@ -57,10 +57,12 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			var tagName = this.tags[i].name,
 				tagValue = this.tags[i].text;
 			
-			if (this.tags[i].type) {
+			if (this.tags[i].pname) { // is a parameter w/ long format
 				tagValue = {
 					type: this.tags[i].type,
-					name: this.tags[i].text
+					name: this.tags[i].text,
+					pname: this.tags[i].pname,
+					pdesc: this.tags[i].pdesc
 				}
 			}
 			
@@ -125,16 +127,37 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 				bits = $.match(/^(\S+)(?:\s([\s\S]*))?$/);
 	
 			if (bits) {
-				name = bits[1] || '';
+				name = (bits[1] || '').toLowerCase();
 				text = bits[2] || '';
 				
 				var typeText = splitType(text);
-				
-				if (name) { tags.push( {name: name, type: typeText.type, text: typeText.text} ); }
+				text = typeText.text;
+
+				if (name === 'param') { // is a parameter w/ long format
+					var [pname, pdesc] = splitPname(text);
+				}
+
+				var tag = {
+					name: name,
+					type: typeText.type,
+					text: text,
+					pname: pname,
+					pdesc: pdesc
+				};
+
+				if (name) {
+					tags.push(tag);
+				}
 			}
 		});
 		
 		return tags;
+	}
+	
+	function splitPname(text) {
+		text.match(/^(\S+)(\s+(\S.*))?$/);
+		
+		return [RegExp.$1, RegExp.$3];
 	}
 	
 	function splitType(tagText) {

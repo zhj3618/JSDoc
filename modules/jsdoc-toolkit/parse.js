@@ -11,6 +11,8 @@ importPackage(org.mozilla.javascript);
  */
 var parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
+var fs = require('common/fs');
+
 (function() {
 	var doc = doc || require('jsdoc-toolkit/doc');
 	parse.docSet = [];
@@ -29,6 +31,10 @@ var parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	}
 	
 	parse.getDocs = function(filepath) {
+		if ( !fs.exists(filepath) ) {
+			throw new Error('That file does not exist or cannot be read: ' + filepath);
+		}
+		
 		parseScript(filepath, visitNode);
 	}
 	
@@ -48,6 +54,7 @@ var parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 					if (commentSrc) {
 						thisDoc = doc.fromComment(commentSrc);
+
 						if ( thisDoc.hasTag('name') && !thisDoc.hasTag('ignore')) {
 							parse.docSet.push( thisDoc.toObject() );
 						}
@@ -60,7 +67,7 @@ var parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	}
 	
 	function parseScript(name, visitor) {
-		var content = readFile(name, 'utf-8'),
+		var content = fs.read(name, {encoding: 'utf-8'}),
 			ast = getParser().parse(content, name, 0);
 			
 		ast.visit(

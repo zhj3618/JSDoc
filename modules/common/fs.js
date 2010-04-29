@@ -39,6 +39,26 @@ var fs = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	}
 	
 	/**
+	 * Check if a file exists.
+	 * @param {string path The file to check.
+	 * @returns {boolean}
+	 */
+	fs.exists = function(path) {
+		file = new File(path);
+	
+		if (file.isDirectory()){
+			return true;
+		}
+		if (!file.exists()){
+			return false;
+		}
+		if (!file.canRead()){
+			return false;
+		}
+		return true;
+	}
+	
+	/**
 	 * @type string[]
 	 * @param dir The starting directory to look in.
 	 * @param [recurse=1] How many levels deep to scan.

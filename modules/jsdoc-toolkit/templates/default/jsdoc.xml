@@ -7,7 +7,7 @@
 			<desc>{=desc}</desc>
 			<memberof>{=memberof}</memberof>
 			{:if param}<params>{:reduce param}
-				<param><type>{=type}</type><name>{=name}</name></param>{/:reduce}
+				<param><type>{=type}</type><name>{=pname}</name><desc>{=pdesc}</desc></param>{/:reduce}
 			</params>{/:if}
 		</symbol>
 		{:if members}<members>{:reduce members}
@@ -18,7 +18,7 @@
 				<signature>{=signature}</signature>
 				<desc>{=desc}</desc>
 				{:if param}<params>{:reduce param}
-					<param><type>{=type}</type><name>{=name}</name></param>{/:reduce}
+					<param><type>{=type}</type><name>{=pname}</name><desc>{=pdesc}</desc></param>{/:reduce}
 				</params>{/:if}
 			</overload>{/:reduce}
 		</overloads>{/:if}
