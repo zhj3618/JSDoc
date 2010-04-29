@@ -13,7 +13,7 @@
 
     <target name="jar">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/run.jar" basedir="build/classes">
+        <jar destfile="build/jar/jsdoc.jar" basedir="build/classes">
             <manifest>
                <attribute name="Main-Class" value="Run"/>
                <attribute name="Class-Path" value="./java/classes/js.jar"/>
