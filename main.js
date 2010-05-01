@@ -2,7 +2,7 @@ const HOME = arguments[0].match(/^(.+[\\\/])/)[0]; // base dir for main.js
 
 load(HOME + '/lib/require2.js'), require.dir = HOME + '/modules/';
 
-var jsdoc  = require('jsdoc-toolkit'),
+var jsdoc  = require('jsdoc'),
 	jsDump = require("narwhal-test/jsdump").jsDump;
 
 if ( jsdoc.opts.help ) {
@@ -12,15 +12,15 @@ if ( jsdoc.opts.help ) {
 		
 // run unit tests?
 if (jsdoc.opts.test) {
-	require('jsdoc-toolkit/tests/all');
+	require('jsdoc/tests/all');
 	// just one?
-	// require('jsdoc-toolkit/test').run(require('jsdoc-toolkit/tests/opts'));
+	// require('jsdoc/test').run(require('jsdoc/tests/opts'));
 	quit();
 }
 
 jsdoc.parse(jsdoc.src);
 var data = { docs: jsdoc.docSet };
 
-var publisher = require('jsdoc-toolkit/templates/' + jsdoc.opts.template);
+var publisher = require('jsdoc/templates/' + jsdoc.opts.template);
 
 publisher.publish(data, jsdoc.opts);

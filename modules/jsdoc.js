@@ -10,9 +10,9 @@
 var jsdoc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 (function() {
-	var opts = opts || require('jsdoc-toolkit/opts'),
-		src =   src || require('jsdoc-toolkit/src'),
-		parse = parse || require('jsdoc-toolkit/parse');
+	var opts = opts || require('jsdoc/opts'),
+		src =   src || require('jsdoc/src'),
+		parse = parse || require('jsdoc/parse');
 	
 	opts.set(global().arguments.slice(1)); // first argument is a the path to main.js
 	
