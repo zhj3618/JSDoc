@@ -4,8 +4,9 @@
 		<symbol id="{=id}">
 			<kind>{=kind}</kind>
 			<name>{=name}</name>
-			<desc>{=desc}</desc>
-			<memberof>{=memberof}</memberof>
+			{:if desc}<desc>{=desc}</desc>{/:if}
+			{:if type}<type>{=type}</type>{/:if}
+			{:if memberof}<memberof>{=memberof}</memberof>{/:if}
 			{:if param}<params>{:reduce param}
 				<param><type>{=type}</type><name>{=pname}</name><desc>{=pdesc}</desc></param>{/:reduce}
 			</params>{/:if}

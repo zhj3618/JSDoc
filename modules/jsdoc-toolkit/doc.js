@@ -1,11 +1,13 @@
 /**
+	@module jsdoc-toolkit/doc
 	@overview Represents a doc comment.
 	@author Michael Mathews <micmath@gmail.com>
 	@license Apache License 2.0 - See file 'LICENSE.markdown' in this project.
  */
 
 /**
-	@namespace doc
+	Interface to objects representing a jsdoc comment and its tags.
+	@namespace jsdoc-toolkit/doc
  */
 var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
@@ -13,7 +15,10 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	var idCounter = 0;
 	
 	/**
-	 * @param {String} comment
+		Factory that creates a Doc object from a raw jsdoc comment string.
+		@method jsdoc-toolkit/doc.fromComment
+		@param {String} comment
+		@returns {jsdoc-toolkit/doc.fromComment}
 	 */
 	doc.fromComment = function(commentSrc) {
 		var tags = [];
@@ -26,10 +31,25 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		return new Doc(tags);
 	}
 	
+	/**
+		@constructor jsdoc-toolkit/doc.Doc
+		@param {Array.<Object>} tags
+	 */
 	function Doc(tags) {
+		/**
+			An array of Objects representing tags.
+			@type Array.<Object>
+			@property jsdoc-toolkit/doc.Doc#tags
+		 */
 		this.tags = tags;
 	}
 	
+	/**
+		Return the text of the first tag with the given name.
+		@method jsdoc-toolkit/doc.Doc#tagText
+		@param {String} tagName
+		@returns {String} The text of the found tag.
+	 */
 	Doc.prototype.tagText = function(tagName) {
 		var i = this.tags.length;
 		while(i--) {
@@ -40,6 +60,12 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		return '';
 	}
 	
+	/**
+		Does a tag with the given name exist in this doc?
+		@method jsdoc-toolkit/doc.Doc#hasTag
+		@param {String} tagName
+		@returns {boolean} True if the tag is found, false otherwise.
+	 */
 	Doc.prototype.hasTag = function(tagName) {
 		var i = this.tags.length;
 		while(i--) {
@@ -50,6 +76,11 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		return false;
 	}
 	
+	/**
+		Get a JSON compatible object representing this Doc.
+		@method jsdoc-toolkit/doc.Doc#toObject
+		@returns {Object}
+	 */
 	Doc.prototype.toObject = function() {
 		var o = {};
 		
@@ -78,9 +109,9 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	}
 	
 	/**
-		Remove JsDoc comment artifacts. Trims white space.
-		@private
-		@function unwrapComment
+		Remove JsDoc comment slash-stars. Trims white space.
+		@inner
+		@function jsdoc-toolkit/doc.Doc unwrapComment
 		@param {string} commentSrc
 		@return {string} Stars and slashes removed.
 	 */
@@ -93,8 +124,8 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	
 	/**
 		Add a @desc tag if none exists on untagged text at start of comment.
-		@private
-		@function fixDesc
+		@inner
+		@function jsdoc-toolkit/doc.Doc fixDesc
 		@param {string} commentSrc
 		@return {string} With needed @desc tag added.
 	 */
@@ -106,9 +137,9 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	}
 	
 	/**
-		Given the raw text of the doc comment, finds tags.
-		@private
-		@method Tag.parse
+		Given the source of a jsdoc comment, finds the tags.
+		@inner
+		@method jsdoc-toolkit/doc.Doc parseTags
 		@param {string} commentSrc Unwrapped.
 		@returns Array.<Object>
 	 */
@@ -154,12 +185,26 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		return tags;
 	}
 	
-	function splitPname(text) {
-		text.match(/^(\S+)(\s+(\S.*))?$/);
+	/**
+		Split the parameter name and parameter desc from the tag text.
+		@inner
+		@method jsdoc-toolkit/doc.Doc splitPname
+		@param {string} tagText
+		@returns Array.<string> The pname and the pdesc.
+	 */
+	function splitPname(tagText) {
+		tagText.match(/^(\S+)(\s+(\S.*))?$/);
 		
 		return [RegExp.$1, RegExp.$3];
 	}
 	
+	/**
+		Split the tag type and remaining tag text from the tag text.
+		@inner
+		@method jsdoc-toolkit/doc.Doc splitType
+		@param {string} tagText
+		@returns Object Like {type: tagType, text: tagText}
+	 */
 	function splitType(tagText) {
 		var type = '',
 			text = tagText,
@@ -182,15 +227,36 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		return { type: type, text: text };
 	}
 	
-	function trim(str) {
-		return str.replace(/^\s+|\s+$/g, '');
+	/**
+		Remove leading and trailing whitespace.
+		@inner
+		@method jsdoc-toolkit/doc.Doc trim
+		@param {string} text.
+		@returns {string}
+	 */
+	function trim(text) {
+		return text.replace(/^\s+|\s+$/g, '');
 	}
 	
+	// other tags that can provide the memberof
+	var memberofs = {methodof: 'method', propertyof: 'property'};
+	// other tags that can provide the symbol name
+	var nameables = ['constructor', 'namespace', 'method', 'property', 'function', 'variable'];
+	
+	/**
+		Expand some shortcut tags. Modifies the tags argument in-place.
+		@inner
+		@method jsdoc-toolkit/doc.Doc preprocess
+		@param {Array.<Object>} tags
+		@returns undefined
+	 */
 	function preprocess(tags) {
 		var name = '',
 			taggedName = '',
 			kind = '',
 			taggedKind = '',
+			memberof = '',
+			taggedMemberof = '',
 			taggedId = '';
 		
 		var i = tags.length;
@@ -201,27 +267,39 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			}
 			
 			if (tags[i].name === 'name') {
-				if (name) { tooManyNames(name); }
+				if (name && name !== tags[i].text) { tooManyNames(name, tags[i].text); }
 				taggedName = name = tags[i].text;
 			}
 			
 			if (tags[i].name === 'kind') {
-				if (kind) { tooManyKinds(kind); }
+				if (kind && kind !== tags[i].text) { tooManyKinds(kind, tags[i].text); }
 				taggedKind = kind = tags[i].text;
 			}
 			
-			['constructor', 'namespace', 'method', 'property', 'function', 'variable']
-			.forEach(function($) {
-				if (tags[i].name === $) {
-					if (tags[i].text) {
-						if (name) { tooManyNames(name); }
-						name = tags[i].text;
-					}
-					
-					if (kind) { tooManyKinds(kind); }
-					kind = tags[i].name;
+			if (tags[i].name === 'memberof') {
+				if (memberof) { tooManyTags('memberof'); }
+				taggedMemberof = memberof = tags[i].text;
+			}
+			
+			if ( nameables.indexOf(tags[i].name) > -1 ) {
+				if (tags[i].text) {
+					if (name && name !== tags[i].text) { tooManyNames(name, tags[i].text); }
+					name = tags[i].text;
 				}
-			});
+				
+				if (kind && kind !== tags[i].name) { tooManyKinds(kind, tags[i].name); }
+				kind = tags[i].name;
+			}
+			
+			if ( memberofs.hasOwnProperty(tags[i].name) ) {
+				if (tags[i].text) {
+					if (memberof) { tooManyTags(tags[i].name); }
+					memberof = tags[i].text;
+				}
+				
+				if (kind && kind !== memberofs[tags[i].name]) { tooManyKinds(kind, memberofs[tags[i].name]); }
+				kind = memberofs[tags[i].name];
+			}
 		}
 		
 		if (name && !taggedName) {
@@ -232,19 +310,38 @@ var doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			tags[tags.length] = {name: 'kind', text: kind };
 		}
 		
+		if (memberof && !taggedMemberof) {
+			tags[tags.length] = {name: 'memberof', text: memberof };
+		}
+		
 		if (!taggedId) {
 			tags[tags.length] = {name: 'id', text: ++idCounter };
 		}
 	}
 	
-	function tooManyNames(name) {
-		throw new Error('Symbol name is documented more than once in the same doc comment: '+name);
+	/**
+		Throw error when two conflicting names are defined in the same doc.
+	 	@inner
+		@function jsdoc-toolkit/doc.Doc tooManyNames
+	 */
+	function tooManyNames(name1, name2) {
+		throw new Error('Conflicting names in documentation: '+name1+', '+name2);
 	}
 	
-	function tooManyKinds(kind) {
-		throw new Error('Symbol kind is documented more than once in the same doc comment: '+kind);
+	/**
+		Throw error when two conflicting kinds are defined in the same doc.
+	 	@inner
+		@function jsdoc-toolkit/doc.Doc tooManyKinds
+	 */
+	function tooManyKinds(kind1, kind2) {
+		throw new Error('Conflicting kinds in documentation: '+kind1+', '+kind2);
 	}
 	
+	/**
+		Throw error when conflicting tags are found.
+		@inner
+		@function jsdoc-toolkit/doc.Doc tooManyTags
+	 */
 	function tooManyTags(tagName) {
 		throw new Error('Symbol has too many tags of type: @'+tagName);
 	}
