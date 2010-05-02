@@ -90,6 +90,6 @@ exports.testParseParamsProperty = function() {
 	);
 	
 	test.assertEqual(
-		'', param2.desc, 'Param desc is "" when no pdesc'
+		undefined, param2.desc, 'Param desc is undefined when no pdesc'
 	);
 }

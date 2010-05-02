@@ -6,11 +6,13 @@
 
 /**
 	Interface to objects representing a jsdoc comment and its tags.
-	@module jsdoc/doc
-	@namespace jsdoc.js
+	@module jsdoc/doclet
+	@requires jsdoc/tag
+	@namespace jsdoc.doclet
  */
 var jsdoc = jsdoc || {};
-jsdoc.doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
+jsdoc.doclet = (typeof exports === 'undefined')? {} : exports; // like commonjs
+jsdoc.tag = require('jsdoc/tag');
 
 (function() {
 	var idCounter = 0;
@@ -19,9 +21,9 @@ jsdoc.doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		Factory that creates a Doclet object from a raw jsdoc comment string.
 		@method fromComment
 		@param {String} commentSrc
-		@returns {jsdoc/doc.Doclet}
+		@returns {Doclet}
 	 */
-	jsdoc.doc.fromComment = function(commentSrc) {
+	jsdoc.doclet.fromComment = function(commentSrc) {
 		var tags = [];
 		
 		commentSrc = unwrapComment(commentSrc);
@@ -82,26 +84,29 @@ jsdoc.doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	var exportTags = ['id', 'name', 'kind', 'desc', 'type', 'param', 'returns', 'exportedby', 'memberof'];
 	
 	/**
-		Get a JSON compatible object representing this Doclet.
+		Get a JSON-compatible object representing this Doclet.
 		@method Doclet#toObject
 		@returns {Object}
 	 */
 	Doclet.prototype.toObject = function() {
-		var o = {};
+		var tag, tagName, tagValue,
+			o = {};
 		
 		for (var i = 0, leni = this.tags.length; i < leni; i++) {
-			var tagName = this.tags[i].name,
-				tagValue = this.tags[i].text;
+			if (exportTags.indexOf(this.tags[i].name) === -1) { continue; }
+		
+			tag = this.tags[i];
+			tagName = tag.name;
+			tagValue = {};
 			
-			if (exportTags.indexOf(tagName) === -1) { continue; }
-			
-			if (this.tags[i].pname) { // is a parameter w/ long format
-				tagValue = {
-					type: this.tags[i].type,
-					name: this.tags[i].pname,
-					desc: this.tags[i].pdesc
-				}
+			if (tag.type) {
+				tagValue.type = tag.type;
+				if (!tag.pname && tagValue.text) { tagValue.text = tag.text; }
 			}
+			if (tag.pname) { tagValue.name = tag.pname; }
+			if (tag.pdesc) { tagValue.desc = tag.pdesc; }
+			
+			if (!tag.pname && !tag.type) { tagValue = tag.text; }
 			
 			if (!o[tagName]) { o[tagName] = tagValue; }
 			else if (o[tagName].push) { o[tagName].push(tagValue); }
@@ -157,91 +162,14 @@ jsdoc.doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		.split(/(^|[\r\n])\s*@/)
 		.filter( function($){ return $.match(/\S/); } )
 		.forEach(function($) {
-			// tags are like: @name text...
-			var name = '',
-				type = '',
-				text = '',
-				bits = $.match(/^(\S+)(?:\s([\s\S]*))?$/);
-	
-			if (bits) {
-				name = (bits[1] || '').toLowerCase();
-				text = bits[2] || '';
-				
-				var typeText = splitType(text);
-				text = typeText.text;
+			var tag = new jsdoc.tag.fromTagText($);
 
-				if (name === 'param') { // is a parameter w/ long format
-					var [pname, pdesc] = splitPname(text);
-				}
-
-				var tag = {
-					name: name,
-					type: typeText.type,
-					text: text,
-					pname: pname,
-					pdesc: pdesc
-				};
-
-				if (name) {
-					tags.push(tag);
-				}
+			if (tag.name) {
+				tags.push(tag);
 			}
 		});
 		
 		return tags;
-	}
-	
-	/**
-		Split the parameter name and parameter desc from the tag text.
-		@inner
-		@method splitPname
-		@param {string} tagText
-		@returns Array.<string> The pname and the pdesc.
-	 */
-	function splitPname(tagText) {
-		tagText.match(/^(\S+)(\s+(\S.*))?$/);
-		
-		return [RegExp.$1, RegExp.$3];
-	}
-	
-	/**
-		Split the tag type and remaining tag text from the tag text.
-		@inner
-		@method splitType
-		@param {string} tagText
-		@returns Object Like {type: tagType, text: tagText}
-	 */
-	function splitType(tagText) {
-		var type = '',
-			text = tagText,
-			count = 0;
-		
-		if (tagText[0] === '{') {
-			count++;
-			
-			for (var i = 1, leni = tagText.length; i < leni; i++) {
-				if (tagText[i] === '{') { count++; }
-				if (tagText[i] === '}') { count--; }
-				if (count === 0) {
-					type = trim(tagText.slice(1, i));
-					text = trim(tagText.slice(i+1));
-					break;
-				}
-			}
-		}
-		
-		return { type: type, text: text };
-	}
-	
-	/**
-		Remove leading and trailing whitespace.
-		@inner
-		@method trim
-		@param {string} text.
-		@returns {string}
-	 */
-	function trim(text) {
-		return text.replace(/^\s+|\s+$/g, '');
 	}
 	
 	// other tags that can provide the memberof
@@ -309,19 +237,19 @@ jsdoc.doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		}
 		
 		if (name && !taggedName) {
-			tags[tags.length] = {name: 'name', text: name };
+			tags[tags.length] = jsdoc.tag.fromTagText('name ' + name);
 		}
 		
 		if (kind && !taggedKind) {
-			tags[tags.length] = {name: 'kind', text: kind };
+			tags[tags.length] = jsdoc.tag.fromTagText('kind ' + kind);
 		}
 		
 		if (memberof && !taggedMemberof) {
-			tags[tags.length] = {name: 'memberof', text: memberof };
+			tags[tags.length] = jsdoc.tag.fromTagText('memberof ' + memberof);
 		}
 		
 		if (!taggedId) {
-			tags[tags.length] = {name: 'id', text: ++idCounter };
+			tags[tags.length] = jsdoc.tag.fromTagText( 'id ' + (++idCounter) );
 		}
 	}
 	
@@ -352,6 +280,3 @@ jsdoc.doc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		throw new Error('Symbol has too many tags of type: @'+tagName);
 	}
 })();
-
-
-

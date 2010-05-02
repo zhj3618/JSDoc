@@ -9,25 +9,25 @@ importPackage(org.mozilla.javascript);
 	@module jsdoc/parse
 	@namespace jsdoc.parse
 	@requires common/fs
-	@requires jsdoc/doc
+	@requires jsdoc/doclet
  */
 var jsdoc = jsdoc || {};
 jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 (function() {
 	var fs  = require('common/fs'),
-		doc = doc || require('./doc');
+		doc = doc || require('./doclet');
 	
 	/**
 		Populated by {@link jsdoc/parse.parseDocs}
 		@property docSet
-		@type Array<jsdoc/doc.Doc>
+		@type Array<Doclet>
 	 */
 	jsdoc.parse.docSet = [];
 	
 	/**
 		@method getDocsByName
-		@returns Array<jsdoc/doc.Doc>
+		@returns Array<Doclet>
 	 */
 	jsdoc.parse.docSet.getDocsByName = function(docName) {
 		var docs = [],
