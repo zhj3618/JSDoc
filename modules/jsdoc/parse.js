@@ -3,20 +3,22 @@
 	@author Michael Mathews <micmath@gmail.com>
 	@license Apache License 2.0 - See file 'LICENSE.markdown' in this project.
  */
+
 importPackage(org.mozilla.javascript);
 
 /**
 	@module jsdoc/parse
-	@namespace jsdoc.parse
+	@exports jsdoc.parse
 	@requires common/fs
 	@requires jsdoc/doclet
+	@namespace jsdoc.parse
  */
 var jsdoc = jsdoc || {};
 jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 (function() {
 	var fs  = require('common/fs'),
-		doc = doc || require('./doclet');
+		doclet = doclet || require('./doclet');
 	
 	/**
 		Populated by {@link jsdoc/parse.parseDocs}
@@ -42,6 +44,40 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		return docs;
 	}
 	
+	jsdoc.parse.docSet.toObject = function() {
+		var docsObjects = [],
+			i = this.length;
+		
+		while (i--) {
+			docsObjects.push( this[i].toObject() );
+		}
+		
+		return { doc: docsObjects };
+	}
+	
+	jsdoc.parse.docSet.toJSON = function() {
+		return require('flesler/jsdump').jsDump.parse( jsdoc.parse.docSet.toObject() );
+	}
+	
+	jsdoc.parse.docSet.toXML = function() {
+		var o = jsdoc.parse.docSet.toObject();
+		
+		// make `id` an attribute of the doc tag
+		for (var i = 0, leni = o.doc.length; i < leni; i++) {
+			for (var p in o.doc[i]) {
+				if (p === 'id') {
+					o.doc[i]['@id'] = o.doc[i].id;
+					delete o.doc[i].id;
+				}
+			}
+		}
+		
+		
+		return require('goessner/json2xml').convert(
+			{ jsdoc: o }
+		);
+	}
+	
 	var currentModule;
 	
 	/**
@@ -62,7 +98,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	}
 	
 	/**
-		Analyse the current node, add a new Doc to jsdoc.parse.docSet
+		Analyse the current node, possibly add a new Doclet to jsdoc.parse.docSet
 		@private
 		@function visitNode
 		@param {org.mozilla.javascript.ast.AstNode} node
@@ -70,7 +106,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	 */
 	function visitNode(node) {
 		var commentSrc = '',
-			thisDoc = null;
+			thisDoclet = null;
 		
 		if (node.type == Token.SCRIPT && node.comments) { 			
 			for each (var comment in node.comments.toArray()) {
@@ -83,18 +119,18 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 							commentSrc = commentSrc.replace(/\*\/$/, "\n@exportedby "+currentModule+"\n*/");
 						}
 						
-						thisDoc = doc.fromComment(commentSrc);
+						thisDoclet = doclet.fromComment(commentSrc);
 						
-						if (thisDoc.hasTag('ignore')) {
+						if (thisDoclet.hasTag('ignore')) {
 							continue;
 						}
 						
-						if (thisDoc.hasTag('module')) {
-							currentModule = thisDoc.tagText('module');
+						if (thisDoclet.hasTag('module')) {
+							currentModule = thisDoclet.tagText('module');
 						}
 						
-						if (thisDoc.hasTag('name')) {
-							jsdoc.parse.docSet.push( thisDoc.toObject() );
+						if (thisDoclet.hasTag('name')) {
+							jsdoc.parse.docSet.push( thisDoclet );
 						}
 					}
 				}
