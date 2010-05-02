@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<docs>{:reduce docs}
+	<doc>
+		<symbol id="{=id}">{:if exportedby}
+			<module>{=exportedby}</module>{/:if}{:if namespacedby}
+			<namespace>{=namespacedby}</namespace>{/:if}
+			<kind>{=kind}</kind>
+			<name>{=name}</name>{:if desc}
+			<desc>{=desc}</desc>{/:if}{:if type}
+			<type>{=type}</type>{/:if}{:if memberof}
+			<memberof>{=memberof}</memberof>{/:if}{:if param}
+			<params>{:reduce param}
+				<param><type>{=type}</type><name>{=pname}</name><desc>{=pdesc}</desc></param>{/:reduce}
+			</params>{/:if}
+		</symbol>{:if members}
+		<members>{:reduce members}
+			<member>{=.}</member>{/:reduce}
+		</members>{/:if}{:if overloads}
+		<overloads>{:reduce overloads}
+			<overload id="{=id}">
+				<signature>{=signature}</signature>
+				<desc>{=desc}</desc>
+				{:if param}<params>{:reduce param}
+					<param><type>{=type}</type><name>{=pname}</name><desc>{=pdesc}</desc></param>{/:reduce}
+				</params>{/:if}
+			</overload>{/:reduce}
+		</overloads>{/:if}
+	</doc>{/:reduce}
+</docs>
