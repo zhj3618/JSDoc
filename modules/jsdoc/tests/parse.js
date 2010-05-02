@@ -22,7 +22,7 @@ exports.testParseAPI = function() {
 exports.testParseGetDocs = function() {
 	test.expect(1);
 	
-	var filePaths = [HOME + '/modules/jsdoc/tests/data-example.js'];
+	var filePaths = [HOME + '/modules/jsdoc/tests/examples/geom/twoD.js'];
 	
 	parse.parseDocs(filePaths[0]);
 	

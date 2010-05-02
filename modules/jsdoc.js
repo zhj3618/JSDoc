@@ -5,13 +5,17 @@
  */
 
 /**
-	@namespace jsdoc
+	@module jsdoc
+	@namespace js
+	@requires jsdoc/opts
+	@requires jsdoc/src
+	@requires jsdoc/parse
  */
 var jsdoc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 (function() {
-	var opts = opts || require('jsdoc/opts'),
-		src =   src || require('jsdoc/src'),
+	var opts  = opts  || require('jsdoc/opts'),
+		src   = src   || require('jsdoc/src'),
 		parse = parse || require('jsdoc/parse');
 	
 	opts.set(global().arguments.slice(1)); // first argument is a the path to main.js
@@ -36,7 +40,7 @@ var jsdoc = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	jsdoc.parse = function(filepaths) {
 		var docset = [];
 		filepaths.forEach(function(filepath) {
-			parse.getDocs(filepath, docset);
+			parse.parseDocs(filepath, docset);
 		});
 		return docset;
 	}

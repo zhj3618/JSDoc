@@ -2,7 +2,7 @@
 // Tom Robison
 
 var equiv = require("narwhal-test/equiv").equiv,
-    jsDump = require("narwhal-test/jsdump").jsDump,
+    jsDump = require("flesler/jsdump").jsDump,
     util = require("util");
 
 var assert = exports;
