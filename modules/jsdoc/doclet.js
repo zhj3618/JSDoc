@@ -8,12 +8,13 @@
 	Functionality relating to jsdoc comments and their tags.
 	@module jsdoc/doclet
 	@requires jsdoc/tag
+	@requires jsdoc/name
 	@exports jsdoc.doclet
-	@namespace jsdoc.doclet
  */
 var jsdoc = jsdoc || {};
 jsdoc.doclet = (typeof exports === 'undefined')? {} : exports; // like commonjs
 jsdoc.tag = require('jsdoc/tag');
+jsdoc.name = require('jsdoc/name');
 
 (function() {
 	var idCounter = 0;
@@ -25,14 +26,19 @@ jsdoc.tag = require('jsdoc/tag');
 		@returns {Doclet}
 	 */
 	jsdoc.doclet.fromComment = function(commentSrc) {
-		var tags = [];
+		var tags = [],
+			doclet;
 		
 		commentSrc = unwrapComment(commentSrc);
 		commentSrc = fixDesc(commentSrc);
 		
 		tags = parseTags(commentSrc);
 		preprocess(tags);
-		return new Doclet(tags);
+		
+		doclet = new Doclet(tags);
+		jsdoc.name.resolve(doclet);
+				
+		return doclet
 	}
 	
 	/**
@@ -55,13 +61,17 @@ jsdoc.tag = require('jsdoc/tag');
 		@param {String} tagName
 		@returns {String} The text of the found tag.
 	 */
-	Doclet.prototype.tagText = function(tagName) {
+	Doclet.prototype.tagText = function(tagName, text) {
 		var i = this.tags.length;
 		while(i--) {
 			if (this.tags[i].name === tagName) {
+				if (text) { this.tags[i].text = text; }
 				return this.tags[i].text;
 			}
 		}
+		
+		// still here?
+		if (text) { this.tags.push( jsdoc.tag.fromTagText(tagName + ' ' + text) ); }
 		return '';
 	}
 	
@@ -251,12 +261,6 @@ jsdoc.tag = require('jsdoc/tag');
 		if (memberof && !taggedMemberof) {
 			tags[tags.length] = jsdoc.tag.fromTagText('memberof ' + memberof);
 		}
-		
-		var longname = name;
-		if (memberof) {
-			longname = memberof + (/#$/.test(memberof)? '' : '.') + name;
-		}
-		tags[tags.length] = jsdoc.tag.fromTagText('longname ' + longname);
 		
 		if (!taggedId) {
 			tags[tags.length] = jsdoc.tag.fromTagText( 'id __' + (++idCounter) );

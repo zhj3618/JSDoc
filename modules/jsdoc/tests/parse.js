@@ -34,11 +34,15 @@ exports.testParseGetDocs = function() {
 }
 
 exports.testParseNameProperty = function() {
-	test.expect(2);
+	test.expect(3);
 
 	var shapeDocs = parse.docSet.getDocsByName('geom.twoD.Shape');
 	test.assertEqual(
 		'object', typeof shapeDocs[0], 'getDocsByName() returns an array with the (long) named doc'
+	);
+	
+	test.assertEqual(
+		1, shapeDocs.length, 'getDocsByName() returns an array with 1 item'
 	);
 	
 	var doc = shapeDocs[0].toObject();
