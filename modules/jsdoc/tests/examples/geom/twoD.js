@@ -12,11 +12,12 @@ geom.twoD = (typeof exports === 'undefined')? {} : exports; // like commonjs
 geom.plane = require('geom/plane');
 
 (function() {
-	var undefined;
+	var undefined,
+		uid = 0;
 	
 	/**
 		A 2D shape.
-		@constructor
+		@constructor geom.twoD.Shape
 	 */
 	geom.twoD.Shape = function() {
 		/**
@@ -45,5 +46,10 @@ geom.plane = require('geom/plane');
 		
 		return { top: this.top, left: this.left };
 	}
+	
+	geom.twoD.intersect = function(shape1, shape2) {
+	}
+	
+	if (geom.twoD.flag === 1) {}
 	
 })();

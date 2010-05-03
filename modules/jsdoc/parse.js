@@ -11,6 +11,7 @@ importPackage(org.mozilla.javascript);
 	@exports jsdoc.parse
 	@requires common/fs
 	@requires jsdoc/doclet
+	@requires jsdoc/name
  */
 var jsdoc = jsdoc || {};
 
@@ -20,6 +21,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 (function() {
 	var fs  = require('common/fs'),
 		doclet = doclet || require('./doclet');
+		jsdoc.name = jsdoc.name || require('jsdoc/name');
 	
 	/**
 		Populated by {@link jsdoc/parse.parseDocs}
@@ -29,7 +31,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	jsdoc.parse.docSet = [];
 	
 	/**
-		@method getDocsByName
+		@method jsdoc.parse.docSet.getDocsByName
 		@returns Array<Doclet>
 	 */
 	jsdoc.parse.docSet.getDocsByName = function(docName) {
@@ -79,17 +81,19 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		);
 	}
 	
-	var currentModule;
+	var currentModule, currentExport, exported;
 	
 	/**
 		Extract information from jsdoc comments in contents of the given filepath.
-		@method parseDocs
+		@method jsdoc.parse.parseDocs
 		@param {String} filepath
 		@throws {Error} If filepath does not exist or cannot be read.
 		@returns undefined
 	 */
 	jsdoc.parse.parseDocs = function(filepath) {
 		currentModule = '';
+		currentExport = '';
+		exported = [];
 		
 		if ( !fs.exists(filepath) ) {
 			throw new Error('That file does not exist or cannot be read: ' + filepath);
@@ -110,33 +114,73 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	function visitNode(node) {
 		var commentSrc = '',
 			thisDoclet = null,
-			thisDocletName = '';
+			thisDocletName = '',
+			thisModule = '';
 		
-		// named doclet
 		if (node.jsDoc) {
+			// named doclet
 			commentSrc = '' + node.jsDoc;
 			thisDoclet = doclet.fromComment(commentSrc);
 			thisDocletName = thisDoclet.tagText('longname');
 			
 			if (thisDocletName) {
 				anonymousDoc = '';
+				
+				// module doclets are always named
+				if ( thisModule = thisDoclet.tagText('module') ) {
+					currentModule = thisModule;
+					currentExport = thisDoclet.tagText('exports') || 'exports';
+				}
+				
+				// is this symbol being exported? add @exportedby tag
+				if (currentModule && currentExport === thisDoclet.tagText('memberof')) {
+					thisDoclet.tagText('exportedby', currentModule);
+					exported.push(thisDocletName);
+				}
+				
 				jsdoc.parse.docSet.push(thisDoclet);
 			}
 			else {
+				// stash it until we find a name in the code
 				anonymousDoc = commentSrc;
 			}
 		}
-		
-		// name from code
-		var type = ''+getTypeName(node);
-
-		if ( anonymousDoc && (type == 'GETPROP' || type == 'NAME') ) {
-			thisDocletName = nodeToString(node);
-			anonymousDoc = anonymousDoc.replace('*/', "\n@name "+thisDocletName+"\n*/");
-			jsdoc.parse.docSet.push( doclet.fromComment(anonymousDoc) );
-			anonymousDoc = '';
+		else {
+			// anonymous doclets have no name provided, try to get name from code
+			var type = ''+getTypeName(node);
+			
+			if (type == 'ASSIGN') { // assignment to the exports object?
+				thisDocletName = nodeToString(node.left);
+				thisDocletName = thisDocletName.replace(/\.prototype\.?/g, '#');
+				
+				// exported
+ 				if (jsdoc.name.shorten(thisDocletName)[0] === currentExport) {
+					// but not documented				
+ 					if (exported.indexOf(thisDocletName) === -1) {
+ 						if (!anonymousDoc) anonymousDoc = '/** @exportedby '+currentModule+' */';
+ 					}
+ 				}
+			}
+			
+			// code name used
+			if (type == 'GETPROP' || type == 'NAME') {
+				thisDocletName = ''+nodeToString(node);
+				thisDocletName = thisDocletName.replace(/\.prototype\.?/g, '#');
+				
+				if ( anonymousDoc) {
+					anonymousDoc = anonymousDoc.replace('*/', "\n@name "+thisDocletName+"\n*/");
+					thisDoclet = doclet.fromComment(anonymousDoc);
+					
+					if (currentModule && currentExport === thisDoclet.tagText('memberof')) {
+						thisDoclet.tagText('exportedby', currentModule);
+						exported.push(thisDocletName);
+					}
+						
+					jsdoc.parse.docSet.push( thisDoclet );
+					anonymousDoc = '';
+				}
+			}
 		}
-
 		return true;
 	}
 	

@@ -29,12 +29,12 @@ jsdoc.tag = require('jsdoc/tag');
 		if (memberof) {
 			if (name.indexOf(memberof) === 0) {
 				longname = name;
-				[prefix, shortname] = shorten(name);
+				[prefix, shortname] = jsdoc.name.shorten(name);
 				doclet.tagText('name', shortname);
 			}
 		}
 		else {
-			[prefix, shortname] = shorten(name);
+			[prefix, shortname] = jsdoc.name.shorten(name);
 			doclet.tagText('memberof', prefix);
 			doclet.tagText('name', shortname);
 		}
@@ -47,7 +47,7 @@ jsdoc.tag = require('jsdoc/tag');
 		doclet.tags.push( jsdoc.tag.fromTagText('longname ' + longname) );
 	}
 	
-	function shorten(longname) {
+	jsdoc.name.shorten = function(longname) {
 		var shortname = longname.split(/([#.])/).pop(),
 			splitOn = RegExp.$1,
 			splitAt = longname.lastIndexOf(splitOn),
