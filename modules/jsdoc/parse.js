@@ -11,9 +11,10 @@ importPackage(org.mozilla.javascript);
 	@exports jsdoc.parse
 	@requires common/fs
 	@requires jsdoc/doclet
-	@namespace jsdoc.parse
  */
 var jsdoc = jsdoc || {};
+
+/** @namespace */
 jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 (function() {
@@ -22,7 +23,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	
 	/**
 		Populated by {@link jsdoc/parse.parseDocs}
-		@property docSet
+		@property jsdoc.parse.docSet
 		@type Array<Doclet>
 	 */
 	jsdoc.parse.docSet = [];
@@ -96,6 +97,8 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		
 		parseScript(filepath, visitNode);
 	}
+
+	var anonymousDoc;
 	
 	/**
 		Analyse the current node, possibly add a new Doclet to jsdoc.parse.docSet
@@ -106,35 +109,32 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	 */
 	function visitNode(node) {
 		var commentSrc = '',
-			thisDoclet = null;
+			thisDoclet = null,
+			thisDocletName = '';
 		
-		if (node.type == Token.SCRIPT && node.comments) { 			
-			for each (var comment in node.comments.toArray()) {
-				if (comment.commentType == Token.CommentType.JSDOC) {
-
-					commentSrc = '' + comment.toSource();
-
-					if (commentSrc) {
-						if (currentModule) {
-							commentSrc = commentSrc.replace(/\*\/$/, "\n@exportedby "+currentModule+"\n*/");
-						}
-						
-						thisDoclet = doclet.fromComment(commentSrc);
-						
-						if (thisDoclet.hasTag('ignore')) {
-							continue;
-						}
-						
-						if (thisDoclet.hasTag('module')) {
-							currentModule = thisDoclet.tagText('module');
-						}
-						
-						if (thisDoclet.hasTag('name')) {
-							jsdoc.parse.docSet.push( thisDoclet );
-						}
-					}
-				}
+		// named doclet
+		if (node.jsDoc) {
+			commentSrc = '' + node.jsDoc;
+			thisDoclet = doclet.fromComment(commentSrc);
+			thisDocletName = thisDoclet.tagText('longname');
+			
+			if (thisDocletName) {
+				anonymousDoc = '';
+				jsdoc.parse.docSet.push(thisDoclet);
 			}
+			else {
+				anonymousDoc = commentSrc;
+			}
+		}
+		
+		// name from code
+		var type = ''+getTypeName(node);
+
+		if ( anonymousDoc && (type == 'GETPROP' || type == 'NAME') ) {
+			thisDocletName = nodeToString(node);
+			anonymousDoc = anonymousDoc.replace('*/', "\n@name "+thisDocletName+"\n*/");
+			jsdoc.parse.docSet.push( doclet.fromComment(anonymousDoc) );
+			anonymousDoc = '';
 		}
 
 		return true;
@@ -166,5 +166,32 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		ce.initFromContext(Context.getCurrentContext());
 		return new Parser(ce, ce.getErrorReporter());
 	}
+
+// credit: ringojs ninjas
+function nodeToString(node) {
+    if (node.type === Token.GETPROP) {
+        return [nodeToString(node.target), node.property.string].join('.');
+    }
+    else if (node.type === Token.NAME) {
+        return node.string;
+    }
+    else if (node.type === Token.STRING) {
+        return node.value;
+    }
+    else if (node.type === Token.THIS) {
+        return 'this';
+    }
+    else if (node.type === Token.GETELEM) {
+        return node.toSource(); // like: Foo['Bar']
+    }
+    else {
+        return getTypeName(node);
+    }
+};
+
+// credit: ringojs ninjas
+function getTypeName(node) {
+    return node ? org.mozilla.javascript.Token.typeToName(node.getType()) : '' ;
+}
 	
 })();

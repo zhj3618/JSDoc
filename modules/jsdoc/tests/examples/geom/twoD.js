@@ -6,6 +6,8 @@
  */
 
 geom = geom || {};
+
+/** @namespace */
 geom.twoD = (typeof exports === 'undefined')? {} : exports; // like commonjs
 geom.plane = require('geom/plane');
 
@@ -14,8 +16,7 @@ geom.plane = require('geom/plane');
 	
 	/**
 		A 2D shape.
-		@constructor Shape
-		@memberof geom.twoD
+		@constructor
 	 */
 	geom.twoD.Shape = function() {
 		/**

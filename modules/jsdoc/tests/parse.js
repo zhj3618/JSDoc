@@ -29,7 +29,7 @@ exports.testParseGetDocs = function() {
 	var docSet = parse.docSet;
 
 	test.assertEqual(
-		4, parse.docSet.length, 'docSet has been populated by 3 docs'
+		5, parse.docSet.length, 'docSet has been populated by 3 docs'
 	);
 }
 
