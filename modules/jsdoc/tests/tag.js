@@ -54,3 +54,22 @@ exports.testTagType = function() {
 		 '{x: number, y: number}', myTag.type, 'tag type can contain curly braces'
 	);
 }
+
+exports.testTagReturns = function() {
+	test.expect(3);
+	
+	// white space (including returns) should be trimmed
+	var myTag = tag.fromTagText("returns	 {	String}\n\r	The name of the Foo.\n	");
+	
+	test.assertEqual(
+		'returns', myTag.name, 'tag returns name is found'
+	);
+	
+	test.assertEqual(
+		'String', myTag.type, 'tag returns type is found, leading whitespace trimmed'
+	);
+	
+	test.assertEqual(
+		'The name of the Foo.', myTag.text, 'tag returns desc is found, wrapping whitespace trimmed'
+	);
+}

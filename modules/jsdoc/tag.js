@@ -32,16 +32,17 @@ jsdoc.tag = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		this.pdesc = '';
 		
 		// tagText is like: "tagname tag text"
-		var bits = tagText.match(/^(\S+)(?:\s([\s\S]*))?$/);
+		var bits = tagText.match(/^(\S+)(?:\s+([\s\S]*))?$/);
 	
 		if (bits) {
+
 			this.name = (bits[1] || '').toLowerCase();
 			this.text = bits[2] || '';
 			
 			var typeText = splitType(this.text);
 			this.type = typeText.type;
 			this.text = trim(typeText.text);
-
+			
 			if (this.name === 'param') { // is a parameter w/ long format
 				var [pname, pdesc] = splitPname(this.text);
 				this.pname = pname;

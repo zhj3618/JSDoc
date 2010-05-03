@@ -15,10 +15,12 @@ geom.plane = require('geom/plane');
 	/**
 		A 2D shape.
 		@constructor Shape
+		@memberof geom.twoD
 	 */
 	geom.twoD.Shape = function() {
 		/**
-			@property Shape#sides
+			@name sides
+			@propertyof geom.twoD.Shape#
 			@id x99
 			@type number
 			@desc How many sides does the shape have.
@@ -28,10 +30,9 @@ geom.plane = require('geom/plane');
 	}
 	
 	/**
-		@name Shape#position
+		@method position
 		@id geom_twod_shape_position
-		@shortname position
-		@methodOf Shape#
+		@methodOf geom.twoD.Shape#
 		@desc Set or get the position of this shape.
 		@param {number} top The top value.
 		@param left

@@ -1,13 +1,14 @@
 /**
-	@overview Represents a doc comment.
+	@overview Represents a jsdoc comment.
 	@author Michael Mathews <micmath@gmail.com>
 	@license Apache License 2.0 - See file 'LICENSE.markdown' in this project.
  */
 
 /**
-	Interface to objects representing a jsdoc comment and its tags.
+	Functionality relating to jsdoc comments and their tags.
 	@module jsdoc/doclet
 	@requires jsdoc/tag
+	@exports jsdoc.doclet
 	@namespace jsdoc.doclet
  */
 var jsdoc = jsdoc || {};
@@ -42,7 +43,7 @@ jsdoc.tag = require('jsdoc/tag');
 	function Doclet(tags) {
 		/**
 			An array of Objects representing tags.
-			@type Array.<Object>
+			@type Array.<Tag>
 			@property Doclet#tags
 		 */
 		this.tags = tags;
@@ -65,7 +66,7 @@ jsdoc.tag = require('jsdoc/tag');
 	}
 	
 	/**
-		Does a tag with the given name exist in this doc?
+		Does a tag with the given name exist in this doclet?
 		@method Doclet#hasTag
 		@param {String} tagName
 		@returns {boolean} True if the tag is found, false otherwise.
@@ -80,8 +81,8 @@ jsdoc.tag = require('jsdoc/tag');
 		return false;
 	}
 	
-	// unsafe in JSON
-	var exportTags = ['id', 'name', 'kind', 'desc', 'type', 'param', 'returns', 'exportedby', 'memberof'];
+	// safe to export to JSON
+	var exportTags = ['id', 'name', 'longname', 'kind', 'desc', 'type', 'param', 'returns', 'exportedby', 'memberof'];
 	
 	/**
 		Get a JSON-compatible object representing this Doclet.
@@ -101,11 +102,14 @@ jsdoc.tag = require('jsdoc/tag');
 			
 			if (tag.type) {
 				tagValue.type = tag.type;
-				if (!tag.pname && tagValue.text) { tagValue.text = tag.text; }
+				// not a long tag
+				if (!tag.pname && tag.text) { tagValue.text = tag.text; }
 			}
+			// a long tag
 			if (tag.pname) { tagValue.name = tag.pname; }
 			if (tag.pdesc) { tagValue.desc = tag.pdesc; }
 			
+			// tag value is not an object, it's just a simple string
 			if (!tag.pname && !tag.type) { tagValue = tag.text; }
 			
 			if (!o[tagName]) { o[tagName] = tagValue; }
@@ -121,10 +125,10 @@ jsdoc.tag = require('jsdoc/tag');
 	
 	/**
 		Remove JsDoc comment slash-stars. Trims white space.
-		@inner
+		@private
 		@function unwrapComment
 		@param {string} commentSrc
-		@return {string} Stars and slashes removed.
+		@return {string} Coment wit stars and slashes removed.
 	 */
 	function unwrapComment(commentSrc) {
 		if (!commentSrc) { return ''; }
@@ -135,7 +139,7 @@ jsdoc.tag = require('jsdoc/tag');
 	
 	/**
 		Add a @desc tag if none exists on untagged text at start of comment.
-		@inner
+		@private
 		@function fixDesc
 		@param {string} commentSrc
 		@return {string} With needed @desc tag added.
@@ -149,8 +153,8 @@ jsdoc.tag = require('jsdoc/tag');
 	
 	/**
 		Given the source of a jsdoc comment, finds the tags.
-		@inner
-		@method parseTags
+		@private
+		@function parseTags
 		@param {string} commentSrc Unwrapped.
 		@returns Array.<Object>
 	 */
@@ -179,7 +183,7 @@ jsdoc.tag = require('jsdoc/tag');
 	
 	/**
 		Expand some shortcut tags. Modifies the tags argument in-place.
-		@inner
+		@private
 		@method preprocess
 		@param {Array.<Object>} tags
 		@returns undefined
@@ -248,14 +252,20 @@ jsdoc.tag = require('jsdoc/tag');
 			tags[tags.length] = jsdoc.tag.fromTagText('memberof ' + memberof);
 		}
 		
+		var longname = name;
+		if (memberof) {
+			longname = memberof + (/#$/.test(memberof)? '' : '.') + name;
+		}
+		tags[tags.length] = jsdoc.tag.fromTagText('longname ' + longname);
+		
 		if (!taggedId) {
-			tags[tags.length] = jsdoc.tag.fromTagText( 'id ' + (++idCounter) );
+			tags[tags.length] = jsdoc.tag.fromTagText( 'id __' + (++idCounter) );
 		}
 	}
 	
 	/**
 		Throw error when two conflicting names are defined in the same doc.
-	 	@inner
+	 	@private
 		@function tooManyNames
 	 */
 	function tooManyNames(name1, name2) {
@@ -264,7 +274,7 @@ jsdoc.tag = require('jsdoc/tag');
 	
 	/**
 		Throw error when two conflicting kinds are defined in the same doc.
-	 	@inner
+	 	@private
 		@function tooManyKinds
 	 */
 	function tooManyKinds(kind1, kind2) {
@@ -273,7 +283,7 @@ jsdoc.tag = require('jsdoc/tag');
 	
 	/**
 		Throw error when conflicting tags are found.
-		@inner
+		@private
 		@function tooManyTags
 	 */
 	function tooManyTags(tagName) {

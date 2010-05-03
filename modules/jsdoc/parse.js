@@ -36,7 +36,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			i = this.length;
 		
 		while (i--) {
-			if (this[i].name === docName) {
+			if (this[i].tagText('longname') === docName) {
 				docs.push(this[i]);
 			}
 		}
