@@ -56,5 +56,55 @@ jsdoc.tag = require('jsdoc/tag');
 		if (splitOn === '#') { prefix = prefix + splitOn; }
 		return [prefix, shortname];
 	}
+	
+	jsdoc.name.resolveThis = function(name, node, memberof) {
+		var enclosingFunction;
+	
+		if (name.indexOf('this.') === 0) {
+			if (!memberof || memberof === 'this') {
+				if (enclosingFunction = node.getEnclosingFunction()) {
+					memberof = ''+enclosingFunction.getName(); // empty string for anonymous functions
+				}
+	
+				if (memberof) {
+					name = memberof + '#' + name.slice(5); // replace this. with foo#
+				}
+				else { // it's an anonymous function
+					memberof = ''+jsdoc.name.nameFromAnon(enclosingFunction);
+					
+					if (!memberof) {
+						memberof = 'anonymous';
+					}
 
+					if (memberof) {
+						name = memberof + '#' + name.slice(5); // replace `this.` with memberof
+					}
+				}
+			}
+			else {
+				name = name.slice(5);
+			}
+		}
+		return name;
+	}
+
+	/**
+		Keep track of anonymous functions that have been assigned to documented symbols.
+		@private
+		@method jsdoc.name.nameFromAnon
+		@param {org.mozilla.javascript.ast.AstNode} node
+		@return {string|null} The documented name, if any.
+	 */
+	jsdoc.name.nameFromAnon = function(node) {
+		var i = jsdoc.name.anons.length;
+		while (i--) {
+			if (jsdoc.name.anons[i][0] === node) {
+				return jsdoc.name.anons[i][1];
+			}
+		}
+	
+		return null;
+	}
+	// tuples, like [ [noderef, jsdocName], [noderef, jsdocName] ]
+	jsdoc.name.anons = [];
 })();

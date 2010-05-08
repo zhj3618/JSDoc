@@ -20,19 +20,19 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 (function() {
 	var fs  = require('common/fs'),
-		doclet = doclet || require('./doclet');
-		jsdoc.name = jsdoc.name || require('jsdoc/name');
+		doclet = require('./doclet'),
+		docname = require('jsdoc/name');
 	
 	/**
 		Populated by {@link jsdoc/parse.parseDocs}
 		@property jsdoc.parse.docSet
-		@type Array<Doclet>
+		@type Array.<Doclet>
 	 */
 	jsdoc.parse.docSet = [];
 	
 	/**
 		@method jsdoc.parse.docSet.getDocsByName
-		@returns Array<Doclet>
+		@returns Array.<Doclet>
 	 */
 	jsdoc.parse.docSet.getDocsByName = function(docName) {
 		var docs = [],
@@ -40,7 +40,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		
 		while (i--) {
 			if (this[i].tagText('longname') === docName) {
-				docs.push(this[i]);
+				docs.unshift(this[i]);
 			}
 		}
 		
@@ -52,7 +52,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			i = this.length;
 		
 		while (i--) {
-			docsObjects.push( this[i].toObject() );
+			docsObjects.unshift( this[i].toObject() );
 		}
 		
 		return { doc: docsObjects };
@@ -74,7 +74,6 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 				}
 			}
 		}
-		
 		
 		return require('goessner/json2xml').convert(
 			{ jsdoc: o }
@@ -115,7 +114,18 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		var commentSrc = '',
 			thisDoclet = null,
 			thisDocletName = '',
-			thisModule = '';
+			thisDocletKind = '',
+			thisModule = '',
+			memberof;
+		
+		// like foo = function(){}
+		if (node.type === Token.ASSIGN) {
+			if (node.right.type === Token.FUNCTION) {
+				var name = nodeToString(node.left);
+				// anonymous function assigned to a variable name
+				docname.anons.push([node.right, name]);
+			}
+		}
 		
 		if (node.jsDoc) {
 			// named doclet
@@ -147,27 +157,32 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		}
 		else {
 			// anonymous doclets have no name provided, try to get name from code
-			var type = ''+getTypeName(node);
+			var type = getTypeName(node);
 			
 			if (type == 'ASSIGN') { // assignment to the exports object?
 				thisDocletName = nodeToString(node.left);
 				thisDocletName = thisDocletName.replace(/\.prototype\.?/g, '#');
 				
+				thisDocletKind = nodeToString(node.right);
+				
 				// exported
- 				if (jsdoc.name.shorten(thisDocletName)[0] === currentExport) {
+ 				if (docname.shorten(thisDocletName)[0] === currentExport) {
 					// but not documented				
  					if (exported.indexOf(thisDocletName) === -1) {
- 						if (!anonymousDoc) anonymousDoc = '/** @exportedby '+currentModule+' */';
+ 						if (!anonymousDoc) anonymousDoc = '/**' +
+ 						"\n@kind " + ((thisDocletKind === 'FUNCTION')? 'method' : 'property') +
+ 						"\n@exportedby " + currentModule + ' */';
  					}
  				}
 			}
 			
 			// code name used
 			if (type == 'GETPROP' || type == 'NAME') {
-				thisDocletName = ''+nodeToString(node);
+				thisDocletName = nodeToString(node);
 				thisDocletName = thisDocletName.replace(/\.prototype\.?/g, '#');
 				
 				if ( anonymousDoc) {
+					thisDocletName = docname.resolveThis(thisDocletName, node);
 					anonymousDoc = anonymousDoc.replace('*/', "\n@name "+thisDocletName+"\n*/");
 					thisDoclet = doclet.fromComment(anonymousDoc);
 					
@@ -210,32 +225,48 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		ce.initFromContext(Context.getCurrentContext());
 		return new Parser(ce, ce.getErrorReporter());
 	}
-
-// credit: ringojs ninjas
-function nodeToString(node) {
-    if (node.type === Token.GETPROP) {
-        return [nodeToString(node.target), node.property.string].join('.');
-    }
-    else if (node.type === Token.NAME) {
-        return node.string;
-    }
-    else if (node.type === Token.STRING) {
-        return node.value;
-    }
-    else if (node.type === Token.THIS) {
-        return 'this';
-    }
-    else if (node.type === Token.GETELEM) {
-        return node.toSource(); // like: Foo['Bar']
-    }
-    else {
-        return getTypeName(node);
-    }
-};
-
-// credit: ringojs ninjas
-function getTypeName(node) {
-    return node ? org.mozilla.javascript.Token.typeToName(node.getType()) : '' ;
-}
+	
+	/**
+		@private
+		@function nodeToString
+		@param {org.mozilla.javascript.ast.AstNode} node
+		@returns {string}
+	 */
+	// credit: ringojs ninjas
+	function nodeToString(node) {
+		var str;
+		
+		if (node.type === Token.GETPROP) {
+			str = [nodeToString(node.target), node.property.string].join('.');
+		}
+		else if (node.type === Token.NAME) {
+			str = node.string;
+		}
+		else if (node.type === Token.STRING) {
+			str = node.value;
+		}
+		else if (node.type === Token.THIS) {
+			str = 'this';
+		}
+		else if (node.type === Token.GETELEM) {
+			str = node.toSource(); // like: Foo['Bar']
+		}
+		else {
+			str = getTypeName(node);
+		}
+		
+		return '' + str;
+	};
+	
+	/**
+		@private
+		@function getTypeName
+		@param {org.mozilla.javascript.ast.AstNode} node
+		@returns {string}
+	 */
+	// credit: ringojs ninjas
+	function getTypeName(node) {
+		return node ? ''+org.mozilla.javascript.Token.typeToName(node.getType()) : '' ;
+	}
 	
 })();
