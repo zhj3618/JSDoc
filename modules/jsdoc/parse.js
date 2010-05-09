@@ -50,7 +50,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	jsdoc.parse.docSet.toObject = function() {
 		var docsObjects = [],
 			i = this.length;
-		
+	
 		while (i--) {
 			docsObjects.unshift( this[i].toObject() );
 		}
@@ -98,7 +98,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			throw new Error('That file does not exist or cannot be read: ' + filepath);
 		}
 		
-		parseScript(filepath, visitNode);
+		parseScript(filepath, visitNode);	
 	}
 
 	var anonymousDoc;
@@ -118,84 +118,82 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			thisModule = '',
 			memberof;
 		
-		// like foo = function(){}
-		if (node.type === Token.ASSIGN) {
-			if (node.right.type === Token.FUNCTION) {
-				var name = nodeToString(node.left);
-				// anonymous function assigned to a variable name
-				docname.anons.push([node.right, name]);
+		// look for all comments that have names provided
+		if (node.type === Token.SCRIPT && node.comments) { 			
+			for each (var comment in node.comments.toArray()) {
+				if (comment.commentType === Token.CommentType.JSDOC) {
+					commentSrc = '' + comment.toSource();
+
+					if (commentSrc) {
+						thisDoclet = doclet.fromComment(commentSrc);
+						if ( thisDoclet.hasTag('name') ) {
+							jsdoc.parse.docSet.push(thisDoclet);
+						}
+					}
+				}
 			}
 		}
 		
-		if (node.jsDoc) {
-			// named doclet
-			commentSrc = '' + node.jsDoc;
-			thisDoclet = doclet.fromComment(commentSrc);
-			thisDocletName = thisDoclet.tagText('longname');
-			
-			if (thisDocletName) {
-				anonymousDoc = '';
+		// like function foo() {}
+		if (node.type == Token.FUNCTION) {
+			if (node.jsDoc) {
+				commentSrc = '' + node.jsDoc;
 				
-				// module doclets are always named
-				if ( thisModule = thisDoclet.tagText('module') ) {
-					currentModule = thisModule;
-					currentExport = thisDoclet.tagText('exports') || 'exports';
+				thisDoclet = doclet.fromComment(commentSrc);
+				thisDocletName = thisDoclet.tagText('longname');
+				
+				if (!thisDocletName) {
+					thisDoclet.setName('' + node.name);
+					jsdoc.parse.docSet.push(thisDoclet);
 				}
-				
-				// is this symbol being exported? add @exportedby tag
-				if (currentModule && currentExport === thisDoclet.tagText('memberof')) {
-					thisDoclet.tagText('exportedby', currentModule);
-					exported.push(thisDocletName);
-				}
-				
-				jsdoc.parse.docSet.push(thisDoclet);
-			}
-			else {
-				// stash it until we find a name in the code
-				anonymousDoc = commentSrc;
 			}
 		}
-		else {
-			// anonymous doclets have no name provided, try to get name from code
-			var type = getTypeName(node);
-			
-			if (type == 'ASSIGN') { // assignment to the exports object?
-				thisDocletName = nodeToString(node.left);
-				thisDocletName = thisDocletName.replace(/\.prototype\.?/g, '#');
-				
-				thisDocletKind = nodeToString(node.right);
-				
-				// exported
- 				if (docname.shorten(thisDocletName)[0] === currentExport) {
-					// but not documented				
- 					if (exported.indexOf(thisDocletName) === -1) {
- 						if (!anonymousDoc) anonymousDoc = '/**' +
- 						"\n@kind " + ((thisDocletKind === 'FUNCTION')? 'method' : 'property') +
- 						"\n@exportedby " + currentModule + ' */';
- 					}
- 				}
+		
+		// like foo = function(){} or foo: function(){}
+		if (node.type === Token.ASSIGN || node.type === Token.COLON) {
+			var name = nodeToString(node.left);
+			commentSrc = node.jsDoc || node.left.jsDoc;
+
+			if (commentSrc) {
+				commentSrc = '' + commentSrc;
+
+				thisDoclet = doclet.fromComment(commentSrc);
+				thisDocletName = thisDoclet.tagText('name');
+
+				if (!thisDocletName) {
+					name = docname.resolveThis( name, node, thisDoclet );
+					thisDoclet.setName(name);
+					jsdoc.parse.docSet.push(thisDoclet);
+				}
 			}
+			docname.anons.push([node.right, (thisDocletName||name)]);
+
+			return true;
+		}
+		
+		// like var foo = function(){}
+		if (node.type == Token.VAR || node.type == Token.LET) {
+			var counter = 0;
 			
-			// code name used
-			if (type == 'GETPROP' || type == 'NAME') {
-				thisDocletName = nodeToString(node);
-				thisDocletName = thisDocletName.replace(/\.prototype\.?/g, '#');
-				
-				if ( anonymousDoc) {
-					thisDocletName = docname.resolveThis(thisDocletName, node);
-					anonymousDoc = anonymousDoc.replace('*/', "\n@name "+thisDocletName+"\n*/");
-					thisDoclet = doclet.fromComment(anonymousDoc);
-					
-					if (currentModule && currentExport === thisDoclet.tagText('memberof')) {
-						thisDoclet.tagText('exportedby', currentModule);
-						exported.push(thisDocletName);
-					}
+			if (node.variables) for each (var n in node.variables.toArray()) {
+
+				if (n.target.type === Token.NAME && n.initializer && n.initializer.type === Token.FUNCTION) {
+					commentSrc = (counter++ === 0 && !n.jsDoc)? node.jsDoc : n.jsDoc;
+					if (commentSrc) {
+						thisDoclet = doclet.fromComment(''+commentSrc);
+						thisDocletName = thisDoclet.tagText('longname');
 						
-					jsdoc.parse.docSet.push( thisDoclet );
-					anonymousDoc = '';
+						if ( !thisDocletName ) {
+							thisDocletName = n.target.string;
+							thisDoclet.setName(thisDocletName);
+							jsdoc.parse.docSet.push(thisDoclet);
+						}
+					}
 				}
 			}
+			return true;
 		}
+		
 		return true;
 	}
 	

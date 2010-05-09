@@ -22,9 +22,13 @@ jsdoc.tag = require('jsdoc/tag');
 	jsdoc.name.resolve = function(doclet) {
 		var name = doclet.tagText('name'),
 			memberof = doclet.tagText('memberof'),
-			longname = name,
-			shortname = name,
+			longname,
+			shortname,
 			prefix;
+			
+		// only keep the first word of the tagged name
+		name = doclet.tagText('name', name.split(/\s+/g)[0]);
+		longname = shortname = name = name.replace(/\.prototype\.?/g, '#');
 		
 		if (memberof) {
 			if (name.indexOf(memberof) === 0) {
@@ -43,8 +47,10 @@ jsdoc.tag = require('jsdoc/tag');
 		if (memberof && name.indexOf(memberof) !== 0) {
 			longname = memberof + (/#$/.test(memberof)? '' : '.') + name;
 		}
-
-		doclet.tags.push( jsdoc.tag.fromTagText('longname ' + longname) );
+		
+		if (longname) doclet.tagText('longname', longname);
+		
+		return longname;
 	}
 	
 	jsdoc.name.shorten = function(longname) {
@@ -57,23 +63,38 @@ jsdoc.tag = require('jsdoc/tag');
 		return [prefix, shortname];
 	}
 	
-	jsdoc.name.resolveThis = function(name, node, memberof) {
-		var enclosingFunction;
-	
-		if (name.indexOf('this.') === 0) {
+	jsdoc.name.resolveThis = function(name, node, doclet) {
+		var enclosing,
+			memberof = (doclet.tagText('memberof') || '').replace(/\.prototype\.?/g, '#');
+
+		if (node.parent && node.parent.type === Token.OBJECTLIT) {
+			if (enclosing = node.parent) {
+			
+				memberof = (jsdoc.name.nameFromAnon(enclosing) || '').replace(/\.prototype\.?/g, '#');;
+			
+				if (!memberof) {
+					memberof = 'anonymousObject';
+				}
+				
+				if (memberof) {
+					name = memberof + (memberof[memberof.length-1] === '#'?'':'#') + name;
+				}
+			}
+		}
+		else if (name.indexOf('this.') === 0) {
 			if (!memberof || memberof === 'this') {
-				if (enclosingFunction = node.getEnclosingFunction()) {
-					memberof = ''+enclosingFunction.getName(); // empty string for anonymous functions
+				if (enclosing = node.getEnclosingFunction()) {
+					memberof = ''+enclosing.getName(); // empty string for anonymous functions
 				}
 	
 				if (memberof) {
 					name = memberof + '#' + name.slice(5); // replace this. with foo#
 				}
 				else { // it's an anonymous function
-					memberof = ''+jsdoc.name.nameFromAnon(enclosingFunction);
+					memberof = jsdoc.name.nameFromAnon(enclosing);
 					
 					if (!memberof) {
-						memberof = 'anonymous';
+						memberof = 'anonymousFunction';
 					}
 
 					if (memberof) {
@@ -99,7 +120,7 @@ jsdoc.tag = require('jsdoc/tag');
 		var i = jsdoc.name.anons.length;
 		while (i--) {
 			if (jsdoc.name.anons[i][0] === node) {
-				return jsdoc.name.anons[i][1];
+				return ''+jsdoc.name.anons[i][1];
 			}
 		}
 	
@@ -107,4 +128,8 @@ jsdoc.tag = require('jsdoc/tag');
 	}
 	// tuples, like [ [noderef, jsdocName], [noderef, jsdocName] ]
 	jsdoc.name.anons = [];
+	
+	function getTypeName(node) {
+		return node ? ''+org.mozilla.javascript.Token.typeToName(node.getType()) : '' ;
+	}
 })();

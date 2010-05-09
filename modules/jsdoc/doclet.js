@@ -17,7 +17,20 @@ jsdoc.tag = require('jsdoc/tag');
 jsdoc.name = require('jsdoc/name');
 
 (function() {
-	var idCounter = 0;
+	var idSeen = {};
+	
+	function getUID(name) {
+		var counter = 2;
+		name = (name || '').replace(/\.prototype\.?/g, '#');
+		name = (''+name).replace(/[^a-zA-Z0-9]/g, '_');
+		if (idSeen[name]) {
+			while (idSeen[name + counter]) {
+				counter++;
+			}
+			return name + counter;
+		}
+		else return name;
+	}
 	
 	/**
 		Factory that creates a Doclet object from a raw jsdoc comment string.
@@ -36,6 +49,9 @@ jsdoc.name = require('jsdoc/name');
 		preprocess(tags);
 		
 		doclet = new Doclet(tags);
+		
+		postprocess(doclet);
+		
 		jsdoc.name.resolve(doclet);
 				
 		return doclet
@@ -56,6 +72,17 @@ jsdoc.name = require('jsdoc/name');
 	}
 	
 	/**
+		Set the name of the Doclet.
+		@method Doclet#setName
+		@param {string name
+	 */
+	Doclet.prototype.setName = function(name) {
+		this.tagText('name', name);
+		name = jsdoc.name.resolve(this);
+		this.tagText('id', getUID(name));
+	}
+	
+	/**
 		Return the text of the first tag with the given name.
 		@method Doclet#tagText
 		@param {String} tagName
@@ -71,7 +98,11 @@ jsdoc.name = require('jsdoc/name');
 		}
 		
 		// still here?
-		if (text) { this.tags.push( jsdoc.tag.fromTagText(tagName + ' ' + text) ); }
+		if (text) {
+			this.tags.push( jsdoc.tag.fromTagText(tagName + ' ' + text) );
+			return text;
+		}
+		
 		return '';
 	}
 	
@@ -144,7 +175,7 @@ jsdoc.name = require('jsdoc/name');
 		if (!commentSrc) { return ''; }
 	
 		// TODO keep leading white space for @examples
-		return commentSrc ? commentSrc.replace(/(^\/\*\*\s*|\s*\*\/$)/g, "").replace(/^\s*\* ?/gm, "") : "";
+		return commentSrc ? commentSrc.replace(/(^\/\*\*+\s*|\s*\**\*\/$)/g, "").replace(/^\s*\* ?/gm, "") : "";
 	}
 	
 	/**
@@ -263,7 +294,13 @@ jsdoc.name = require('jsdoc/name');
 		}
 		
 		if (!taggedId) {
-			tags[tags.length] = jsdoc.tag.fromTagText( 'id __' + (++idCounter) );
+			tags[tags.length] = jsdoc.tag.fromTagText( 'id ' + getUID(name) );
+		}
+	}
+	
+	function postprocess(doclet) {
+		if ( doclet.hasTag('class') && !doclet.hasTag('constructor') ) {
+			doclet.tags[doclet.tags.length] = jsdoc.tag.fromTagText('kind constructor');
 		}
 	}
 	

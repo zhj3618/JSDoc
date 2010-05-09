@@ -5,7 +5,7 @@
  */
 var test = require('jsdoc/test');
 var parse = require('jsdoc/parse');
-/*debug*/var jsdump = require("flesler/jsdump").jsDump;
+/*debug*///var jsdump = require("flesler/jsdump").jsDump;
 
 exports.testParseAPI = function() {
 	test.expect(2);
@@ -19,88 +19,138 @@ exports.testParseAPI = function() {
 	);
 }
 
-exports.testParseGetDocs = function() {
-	test.expect(1);
+exports.testParseNamedSimple = function() {
+	test.expect(2);
 	
-	var filePaths = [HOME + '/modules/jsdoc/tests/examples/geom/twoD.js'];
+	var filePaths = [HOME + '/modules/jsdoc/tests/parse/namedSimple.js'];
 	
 	parse.parseDocs(filePaths[0]);
 	
 	var docSet = parse.docSet;
 
 	test.assertEqual(
-		6, parse.docSet.length, 'docSet has been populated by 3 docs'
-	);
-}
-
-exports.testParseNameProperty = function() {
-	test.expect(3);
-
-	var shapeDocs = parse.docSet.getDocsByName('geom.twoD.Shape');
-	test.assertEqual(
-		'object', typeof shapeDocs[0], 'getDocsByName() returns an array with the (long) named doc'
+		1, parse.docSet.length, 'docSet has been populated by 1 docs'
 	);
 	
 	test.assertEqual(
-		1, shapeDocs.length, 'getDocsByName() returns an array with 1 item'
-	);
-	
-	var doc = shapeDocs[0].toObject();
-	test.assertEqual(
-		'Shape', doc.name, 'Shape doc has property (short) name set to "Shape"'
+		'here.Is.The#Name#', parse.docSet[0].tagText('name'), 'the doc name is set to the first word of the @name'
 	);
 }
 
-exports.testParseKindProperty = function() {
+exports.testParseNamedSimpleDesc = function() {
 	test.expect(1);
 	
-	var shapeDocs = parse.docSet.getDocsByName('geom.twoD.Shape');
-	var doc = shapeDocs[0].toObject();
+	var filePaths = [HOME + '/modules/jsdoc/tests/parse/namedSimple.js'];
+	
+	parse.docSet.length = 0;
+	parse.parseDocs(filePaths[0]);
+	
+	var docSet = parse.docSet;
+
 	test.assertEqual(
-		'constructor', doc.kind, 'Shape doc has property kind set to "constructor"'
+		'This is the only valid doclet\nin this file.', parse.docSet[0].tagText('desc'), 'the doc desc is set to the first untagged line'
 	);
 }
 
-exports.testParseDescProperty = function() {
-	test.expect(1);
+exports.testParseConstructor = function() {
+	test.expect(13);
 	
-	var shapeDocs = parse.docSet.getDocsByName('geom.twoD.Shape');
-	var doc = shapeDocs[0].toObject();
+	var filePaths = [HOME + '/modules/jsdoc/tests/parse/constructor.js'];
+	
+	parse.docSet.length = 0;
+	parse.parseDocs(filePaths[0]);
+	
+	var docSet = parse.docSet;
+	/*debug*///print('DUMP: '+jsdump.parse(docSet));
+
 	test.assertEqual(
-		'A 2D shape.', doc.desc, 'Shape doc has property desc set to the first line of the comment'
+		true, parse.docSet.length === 6, 'All 6 valid doclets were found: '+parse.docSet.length
+	);
+	
+	// 0
+	test.assertEqual(
+		'constructor', parse.docSet[0].tagText('kind'), 'the kind can be found in the @name tag when there is a @constructor tag'
+	);
+	test.assertEqual(
+		'nameFromConstructorTag', parse.docSet[0].tagText('name'), 'the name can be found in the @name tag when there is a @constructor tag'
+	);
+	
+	// 1
+	test.assertEqual(
+		'constructor', parse.docSet[1].tagText('kind'), 'the kind can be found in the @constructor tag'
+	);
+	test.assertEqual(
+		'nameFromNameTag', parse.docSet[1].tagText('name'), 'the name can be found in the @constructor tag'
+	);
+	
+	// 2
+	test.assertEqual(
+		'constructor', parse.docSet[2].tagText('kind'), 'the kind can be found in the code with an empty @constructor tag'
+	);
+	test.assertEqual(
+		'nameFromCode', parse.docSet[2].tagText('name'), 'the name can be found in the code with an empty @constructor tag'
+	);
+	
+	// 3
+	test.assertEqual(
+		'constructor', parse.docSet[3].tagText('kind'), 'the kind can be found in the `var` code with an empty @constructor tag'
+	);
+	test.assertEqual(
+		'nameFromVar', parse.docSet[3].tagText('name'), 'the name can be found in the `var` code with an empty @constructor tag'
+	);
+	
+	// 4
+	test.assertEqual(
+		'constructor', parse.docSet[4].tagText('kind'), 'the kind can be found in the `var` code list with an empty @constructor tag'
+	);
+	test.assertEqual(
+		'anotherNameFromVar', parse.docSet[4].tagText('name'), 'the name can be found in the `var` code list with an empty @constructor tag'
+	);
+	
+	// 5
+	test.assertEqual(
+		'constructor', parse.docSet[5].tagText('kind'), 'the kind can be found in the function declaration code with an empty @constructor tag'
+	);
+	test.assertEqual(
+		'fromFunction', parse.docSet[5].tagText('name'), 'the name can be found in the function declaration code with an empty @constructor tag'
 	);
 }
 
-exports.testParseParamsProperty = function() {
-	test.expect(6);
-	
-	var shapeDocs = parse.docSet.getDocsByName('geom.twoD.Shape#position');
-	var doc = shapeDocs[0].toObject();
-	test.assertEqual(
-		'object', typeof doc.param, 'the param property is defined'
-	);
-	test.assertEqual(
-		2, doc.param.length, 'All params are found'
-	);
-	
-	var param1 = doc.param[0];
-
-	test.assertEqual(
-		'top', param1.name, 'Param name is found'
-	);
-	
-	test.assertEqual(
-		'The top value.', param1.desc, 'Param desc is found'
-	);
-	
-	var param2 = doc.param[1];
-
-	test.assertEqual(
-		'left', param2.name, 'Param name is found when no pdesc'
-	);
-	
-	test.assertEqual(
-		undefined, param2.desc, 'Param desc is undefined when no pdesc'
-	);
+exports.testParsePrototype = function() {
+ 	test.expect(5);
+ 	
+ 	var filePaths = [HOME + '/modules/jsdoc/tests/parse/prototype.js'];
+ 	
+ 	parse.docSet.length = 0;
+ 	parse.parseDocs(filePaths[0]);
+ 	
+ 	var docSet = parse.docSet;
+ 	
+ 	test.assertEqual(
+ 		true, parse.docSet.length === 6, 'All 6 valid doclets were found: '+parse.docSet.length
+ 	);
+ 	
+ 	var docs = docSet.getDocsByName('Foo#memberfoo1');
+ 	
+ 	test.assertEqual(
+ 		1, docs.length, 'Renamed `this` using @methodof tag: Foo#memberfoo1'
+ 	);
+ 	
+ 	docs = docSet.getDocsByName('Base#memberbase1');
+ 	
+ 	test.assertEqual(
+ 		1, docs.length, 'Can resolve `this` inside a function declaration: Base#memberbase'
+ 	);
+ 	
+ 	docs = docSet.getDocsByName('Foo#memberfoo2');
+ 	
+ 	test.assertEqual(
+ 		1, docs.length, 'Can resolve memberof for method inside an object literal: Foo#memberfoo2'
+ 	);
+ 	
+ 	docs = docSet.getDocsByName('Base#memberbase2');
+ 	
+ 	test.assertEqual(
+ 		1, docs.length, 'Prototype name is reduced to # in tagged name: Base#memberbase2'
+ 	);
 }
-/* */
