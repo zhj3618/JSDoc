@@ -26,6 +26,7 @@ jsdoc.opts = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	argsParser.addOption('T', 'test',        false, 'Run unit tests and quit.');
 	argsParser.addOption('d', 'destination', true,  'The path to output folder.');
 	argsParser.addOption('h', 'help',        false, 'Print help message and quit.');
+	argsParser.addOption('V', 'validate',    false, 'Validate the results produced by parsing the source code.');
 	
 	/**
 		Set the options for this app.
