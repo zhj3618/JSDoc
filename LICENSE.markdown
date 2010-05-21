@@ -65,9 +65,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 Require2.js
 -----------
 
-Require2.js is an implementation of the CommonJS Modules 1.0.
-
-Require2.js is Copyright (c) 2009 by David Flanagan
+Require2.js is an implementation of the CommonJS Modules 1.0,
+copyright (c) 2009 by David Flanagan
 
 The source code for Require2.js can be obtained via
 
@@ -105,8 +104,17 @@ OTHER DEALINGS IN THE SOFTWARE.
 jsDump
 ------
 
-Narwhal's testing module uses jsDump.
-
-jsDump is Copyright (c) 2008 Ariel Flesler, aflesler(at)gmail(dot)com
+jsDump is copyright (c) 2008 Ariel Flesler, aflesler(at)gmail(dot)com
 
 Licensed under BSD http://www.opensource.org/licenses/bsd-license.php
+
+json2xml
+--------
+
+json2xml is copyright (c) Stefan Goessner 2006
+
+json2xml is licensed under Creative Commons GNU LGPL License,
+http://creativecommons.org/licenses/LGPL/2.1/
+
+http://goessner.net/
+http://goessner.net/download/prj/jsonxml/

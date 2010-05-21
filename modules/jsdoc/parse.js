@@ -19,9 +19,10 @@ var jsdoc = jsdoc || {};
 jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 (function() {
-	var fs  = require('common/fs'),
-		doclet = require('./doclet'),
-		docname = require('jsdoc/name');
+	var fs  = require('common/fs');
+	
+	jsdoc.doclet = jsdoc.doclet || require('./doclet');
+	jsdoc.name = jsdoc.name     || require('jsdoc/name');
 	
 	/**
 		Populated by {@link jsdoc/parse.parseDocs}
@@ -101,8 +102,6 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		parseScript(filepath, visitNode);	
 	}
 
-	var anonymousDoc;
-	
 	/**
 		Analyse the current node, possibly add a new Doclet to jsdoc.parse.docSet
 		@private
@@ -113,10 +112,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	function visitNode(node) {
 		var commentSrc = '',
 			thisDoclet = null,
-			thisDocletName = '',
-			thisDocletKind = '',
-			thisModule = '',
-			memberof;
+			thisDocletName = '';
 		
 		// look for all comments that have names provided
 		if (node.type === Token.SCRIPT && node.comments) { 			
@@ -125,7 +121,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 					commentSrc = '' + comment.toSource();
 
 					if (commentSrc) {
-						thisDoclet = doclet.fromComment(commentSrc);
+						thisDoclet = jsdoc.doclet.fromComment(commentSrc);
 						if ( thisDoclet.hasTag('name') ) {
 							jsdoc.parse.docSet.push(thisDoclet);
 						}
@@ -139,7 +135,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			if (node.jsDoc) {
 				commentSrc = '' + node.jsDoc;
 				
-				thisDoclet = doclet.fromComment(commentSrc);
+				thisDoclet = jsdoc.doclet.fromComment(commentSrc);
 				thisDocletName = thisDoclet.tagText('longname');
 				
 				if (!thisDocletName) {
@@ -157,16 +153,16 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			if (commentSrc) {
 				commentSrc = '' + commentSrc;
 
-				thisDoclet = doclet.fromComment(commentSrc);
+				thisDoclet = jsdoc.doclet.fromComment(commentSrc);
 				thisDocletName = thisDoclet.tagText('name');
 
 				if (!thisDocletName) {
-					name = docname.resolveThis( name, node, thisDoclet );
+					name = jsdoc.name.resolveThis( name, node, thisDoclet );
 					thisDoclet.setName(name);
 					jsdoc.parse.docSet.push(thisDoclet);
 				}
 			}
-			docname.anons.push([node.right, (thisDocletName||name)]);
+			jsdoc.name.anons.push([node.right, (thisDocletName||name)]);
 
 			return true;
 		}
@@ -180,7 +176,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 				if (n.target.type === Token.NAME && n.initializer && n.initializer.type === Token.FUNCTION) {
 					commentSrc = (counter++ === 0 && !n.jsDoc)? node.jsDoc : n.jsDoc;
 					if (commentSrc) {
-						thisDoclet = doclet.fromComment(''+commentSrc);
+						thisDoclet = jsdoc.doclet.fromComment('' + commentSrc);
 						thisDocletName = thisDoclet.tagText('longname');
 						
 						if ( !thisDocletName ) {
@@ -202,7 +198,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		@function parseScript
 	 */
 	function parseScript(name, visitor) {
-		var content = fs.read(name, {encoding: 'utf-8'}),
+		var content = fs.read(name, {encoding: 'utf-8'}), // TODO allow encoding to be user-configured
 			ast = getParser().parse(content, name, 0);
 			
 		ast.visit(
