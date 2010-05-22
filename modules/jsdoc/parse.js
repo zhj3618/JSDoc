@@ -173,7 +173,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			
 			if (node.variables) for each (var n in node.variables.toArray()) {
 
-				if (n.target.type === Token.NAME && n.initializer && n.initializer.type === Token.FUNCTION) {
+				if (n.target.type === Token.NAME && n.initializer/* && n.initializer.type === Token.FUNCTION*/) {
 					commentSrc = (counter++ === 0 && !n.jsDoc)? node.jsDoc : n.jsDoc;
 					if (commentSrc) {
 						thisDoclet = jsdoc.doclet.fromComment('' + commentSrc);

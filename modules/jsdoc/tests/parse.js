@@ -52,6 +52,59 @@ exports.testParseNamedSimpleDesc = function() {
 	);
 }
 
+exports.testParseNamespace = function() {
+	test.expect(10);
+	
+	var filePaths = [HOME + '/modules/jsdoc/tests/parse/namespace.js'];
+	
+	parse.docSet.length = 0;
+	parse.parseDocs(filePaths[0]);
+	
+	var docSet = parse.docSet;
+	/*debug*///print('DUMP: '+jsdump.parse(docSet));
+
+	test.assertEqual(
+		5, parse.docSet.length, 'All 5 valid doclets were found: '+parse.docSet.length
+	);
+	
+	// 0
+	test.assertEqual(
+		'namespace', parse.docSet[0].tagText('kind'), 'the kind can be found when there is a @namespace tag'
+	);
+	test.assertEqual(
+		'nameFromNamespaceTag', parse.docSet[0].tagText('name'), 'the name can be found when there is a @namespace tag'
+	);
+	
+	// 1
+	test.assertEqual(
+		'namespace', parse.docSet[1].tagText('kind'), 'the kind can be found when there is a @name tag plus a @namespace tag'
+	);
+	test.assertEqual(
+		'nameFromNameTag', parse.docSet[1].tagText('name'), 'the name can be found in the @name tag when there is a @namespace tag'
+	);
+	
+	// 2
+	test.assertEqual(
+		'namespace', parse.docSet[2].tagText('kind'), 'the kind can be found when there is no @name tag plus a @namespace tag'
+	);
+	test.assertEqual(
+		'nameFromCode', parse.docSet[2].tagText('name'), 'the name can be found in the code when there is a @namespace tag'
+	);
+	
+	// 3
+	test.assertEqual(
+		'nested', parse.docSet[3].tagText('name'), 'the nested name can be found in the code when there is a @namespace tag'
+	);
+	test.assertEqual(
+		'nameFromCode.nested', parse.docSet[3].tagText('longname'), 'the nested long name can be found in the code when there is a @namespace tag'
+	);
+	
+	// 4
+	test.assertEqual(
+		'nameFromVar', parse.docSet[4].tagText('name'), 'the var name can be found in the code when there is a @namespace tag'
+	);
+}
+
 exports.testParseConstructor = function() {
 	test.expect(13);
 	
@@ -69,7 +122,7 @@ exports.testParseConstructor = function() {
 	
 	// 0
 	test.assertEqual(
-		'constructor', parse.docSet[0].tagText('kind'), 'the kind can be found in the @name tag when there is a @constructor tag'
+		'constructor', parse.docSet[0].tagText('kind'), 'the kind can be found when there is a @constructor tag'
 	);
 	test.assertEqual(
 		'nameFromConstructorTag', parse.docSet[0].tagText('name'), 'the name can be found in the @name tag when there is a @constructor tag'
