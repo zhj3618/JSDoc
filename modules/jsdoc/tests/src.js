@@ -10,7 +10,7 @@ var src = require('jsdoc/src');
 exports.testGetFilePaths = function() {
 	var app = {}; // dummy
 	
-	test.expect(6);
+	test.expect(7);
 	
 	
 	test.assertEqual(
@@ -36,6 +36,10 @@ exports.testGetFilePaths = function() {
 	filePaths = src.getFilePaths([HOME+'/modules/jsdoc/tests/data/'], 1);
 	test.assertEqual(
 		1, filePaths.length, 'filePaths(tests/data/, 1) returns 1 filepath'
+	);
+	
+	test.assertEqual(
+		true, filePaths[0].indexOf('modules/jsdoc/tests/data/zero.js') > 0, 'filePaths(tests/data/, 1) returns the complete filepath.'
 	);
 	
 	filePaths = src.getFilePaths([HOME+'/modules/jsdoc/tests/data/'], 10);

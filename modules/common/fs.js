@@ -5,6 +5,7 @@
  */
 
 /**
+	@desc Functionality related to the filesystem.
 	@namespace fs
  */
 var fs = (typeof exports === 'undefined')? {} : exports; // like commonjs
@@ -12,7 +13,6 @@ var fs = (typeof exports === 'undefined')? {} : exports; // like commonjs
 (function() {
 	var slash = java.lang.System.getProperty('file.separator') || '/',
 		File = Packages.java.io.File,
-		//sys = sys || require('common/sys'),
 		defaultEncoding = 'utf-8';
 	
 	fs.read = function(path, options) {
@@ -24,9 +24,10 @@ var fs = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	
 	fs.write = function(path, content, options) {
 		var options = options || {},
-			encoding = options.encoding || defaultEncoding;
+			encoding = options.encoding || defaultEncoding,
+			out;
 		
-		var out = new Packages.java.io.PrintWriter(
+		out = new Packages.java.io.PrintWriter(
 			new Packages.java.io.OutputStreamWriter(
 				new Packages.java.io.FileOutputStream(path),
 				encoding
@@ -40,11 +41,11 @@ var fs = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	
 	/**
 	 * Check if a file exists.
-	 * @param {string path The file to check.
+	 * @param {string} path The file to check.
 	 * @returns {boolean}
 	 */
 	fs.exists = function(path) {
-		file = new File(path);
+		var file = new File(path);
 	
 		if (file.isDirectory()){
 			return true;
@@ -59,21 +60,24 @@ var fs = (typeof exports === 'undefined')? {} : exports; // like commonjs
 	}
 	
 	/**
+	 * Get a list of all files in a given directory. Will not include files that
+	 * start with a dot.
 	 * @type string[]
-	 * @param dir The starting directory to look in.
-	 * @param [recurse=1] How many levels deep to scan.
-	 * @returns An array of all the paths to files in the given dir.
+	 * @param {string} dir The starting directory to look in.
+	 * @param {number} [recurse=1] How many levels deep to scan.
+	 * @returns {string[]} An array of {string} paths to the files in the given directory.
 	 */
-	fs.ls = function(/**string*/ dir, /**number*/ recurse, _allFiles, _path) {
-		var files, file;
+	fs.ls = function(dir, recurse, _allFiles, _path) {
+		var files,
+			file;
 	
-		if (_path === undefined) { // initially
+		if (typeof _path === 'undefined') { // initially
 			_allFiles = [];
 			_path = [dir];
 		}
 		
 		if (_path.length === 0) { return _allFiles; }
-		if (recurse === undefined) { recurse = 1; }
+		if (typeof recurse === 'undefined') { recurse = 1; }
 		
 		dir = new File(dir);
 		if (!dir.directory) { return [String(dir)]; }
@@ -93,12 +97,18 @@ var fs = (typeof exports === 'undefined')? {} : exports; // like commonjs
 				_path.pop();
 			}
 			else { // it's a file	
-				_allFiles.push((_path.join(slash) + slash + file).replace(slash + slash, slash));
-	
+				_allFiles.push(
+					fixSlash( (_path.join(slash) + slash + file) )
+				);
 			}
 		}
 	
 		return _allFiles;
+	}
+	
+	// fix multiple slashes, like one//two
+	function fixSlash(path) {
+		return path.replace(/[\/\\]+/g, slash);
 	}
 
 })();
