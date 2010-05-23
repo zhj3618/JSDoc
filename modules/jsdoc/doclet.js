@@ -123,7 +123,7 @@ jsdoc.name = require('jsdoc/name');
 	}
 	
 	// safe to export to JSON
-	var exportTags = ['id', 'name', 'longname', 'kind', 'desc', 'type', 'param', 'returns', 'exportedby', 'memberof'];
+	var exportTags = ['id', 'name', 'longname', 'kind', 'desc', 'type', 'param', 'returns', 'exports', 'memberof'];
 	
 	/**
 		Get a JSON-compatible object representing this Doclet.

@@ -209,7 +209,7 @@ exports.testParsePrototype = function() {
 }
 
 exports.testParseExports = function() {
-	test.expect(2);
+	test.expect(3);
 	
 	var filePaths = [HOME + '/modules/jsdoc/tests/parse/exports.js'];
 	
@@ -219,14 +219,19 @@ exports.testParseExports = function() {
 	var docSet = parse.docSet;
 	/*debug*///print('DUMP: '+jsdump.parse(docSet));
 
-	test.assertEqual(
-		3, parse.docSet.length, 'All 3 valid doclets were found: '+parse.docSet.length
-	);
+	var docs = docSet.getDocsByName('math/geom');
 	
-// 	test.assertEqual(
-// 		'namespace', parse.docSet[0].tagText('kind'), 'the kind can be found when there is a @namespace tag'
-// 	);
-// 	test.assertEqual(
-// 		'nameFromNamespaceTag', parse.docSet[0].tagText('name'), 'the name can be found when there is a @namespace tag'
-// 	);
+	test.assertEqual(
+		1, docs.length, 'Module math/geom was found.'
+	);
+
+	var doc = docs[0].toObject();
+	test.assertEqual(
+ 		'object', typeof doc.exports, 'Module math/geom exports is an object.'
+ 	);
+ 	
+ 	
+ 	test.assertEqual(
+ 		2, doc.exports.length, 'Module math/geom exports 2 members.'
+ 	);
 }

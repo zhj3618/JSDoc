@@ -18,14 +18,14 @@ var test = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		passes = 0;
 	
 	function fail(message) {
-		print('\033[1;31m' + 'NOT OK: ' + message + '\033[m');
+		print('\033[1;31m' + 'NOT OK ' + String(message).replace(/\n/g, '\n#    ') + '\033[m');
 		
 		if (!isNaN(counter)) { counter++; }
 		fails++;
 	}
 	
 	function pass(message) {
-		print('ok: ' + message);
+		print('OK ' + message);
 		
 		if (!isNaN(counter)) { counter++; }
 		passes++;
@@ -45,11 +45,18 @@ var test = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		for (var t in module) {
 			if (t.indexOf('test') === 0 && typeof module[t] === 'function') {
 				print('# '+t);
-				module[t]();
+				
+				try {
+					module[t]();
+				}
+				catch(e) {
+					fail(e);
+				}
+				
 				totalTests++;
 				
 				if (expecting && counter !== expecting) {
-					fail('Expected ' + expecting + ' asserts, actual: ' + counter);
+					fail('#    Expected ' + expecting + ' asserts, actual: ' + counter);
 					delete counter;
 					delete expecting;
 				}
@@ -64,6 +71,7 @@ var test = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		
 		if (fails === 0) { print('\033[1;37;42m# ALL PASS.\033[m'); }
 		else { print('\033[1;37;41m# FAIL.\033[m'); }
+		print('');
 	}
 
 	test.assertEqual = function(expected, actual, message) {
