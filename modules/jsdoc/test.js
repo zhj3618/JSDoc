@@ -11,18 +11,24 @@ var test = (typeof exports === 'undefined')? {} : exports; // like commonjs
 
 (function() {
 	var assert = assert || require('narwhal-test/assert');
-	var counter, expecting;
+	var counter,
+		expecting,
+		totalTests = 0,
+		fails = 0,
+		passes = 0;
 	
 	function fail(message) {
-		print('\033[0;31m' + 'NOT OK: ' + message + '\033[m');
+		print('\033[1;31m' + 'NOT OK: ' + message + '\033[m');
 		
 		if (!isNaN(counter)) { counter++; }
+		fails++;
 	}
 	
 	function pass(message) {
 		print('ok: ' + message);
 		
 		if (!isNaN(counter)) { counter++; }
+		passes++;
 	}
 	
 	test.suite = function(name) {
@@ -34,19 +40,30 @@ var test = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		counter = 0;
 	}
 	
+	
 	test.run = function(module) {
 		for (var t in module) {
 			if (t.indexOf('test') === 0 && typeof module[t] === 'function') {
 				print('# '+t);
 				module[t]();
+				totalTests++;
 				
 				if (expecting && counter !== expecting) {
-					fail('Expected ' + expecting + ' tests, actual: ' + counter);
+					fail('Expected ' + expecting + ' asserts, actual: ' + counter);
 					delete counter;
 					delete expecting;
 				}
 			}
 		}
+	}
+	
+	test.summary = function() {
+		print('########################################################');
+		print('# ' + totalTests + ' tests ran.');
+		print('# ' + fails + ' of '+ (fails+passes) + ' assertions failed.');
+		
+		if (fails === 0) { print('\033[1;37;42m# ALL PASS.\033[m'); }
+		else { print('\033[1;37;41m# FAIL.\033[m'); }
 	}
 
 	test.assertEqual = function(expected, actual, message) {
