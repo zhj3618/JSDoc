@@ -79,7 +79,7 @@ jsdoc.name = require('jsdoc/name');
 	Doclet.prototype.setName = function(name) {
 		this.tagText('name', name);
 		name = jsdoc.name.resolve(this);
-		this.tagText('id', getUID(name));
+//		this.tagText('id', getUID(name));
 	}
 	
 	/**
@@ -123,7 +123,7 @@ jsdoc.name = require('jsdoc/name');
 	}
 	
 	// safe to export to JSON
-	var exportTags = ['id', 'name', 'longname', 'kind', 'desc', 'type', 'param', 'returns', 'exports', 'memberof'];
+	var exportTags = ['name', 'longname', 'kind', 'desc', 'type', 'param', 'returns', 'exports', 'requires', 'memberof', 'access'];
 	
 	/**
 		Get a JSON-compatible object representing this Doclet.
@@ -140,7 +140,7 @@ jsdoc.name = require('jsdoc/name');
 			tag = this.tags[i];
 			tagName = tag.name;
 			tagValue = {};
-			
+			 
 			if (tag.type) {
 				tagValue.type = tag.type;
 				// not a long tag
@@ -218,9 +218,9 @@ jsdoc.name = require('jsdoc/name');
 	}
 	
 	// other tags that can provide the memberof
-	var memberofs = {methodof: 'method', propertyof: 'property'};
+	var memberofs = {methodof: 'method', propertyof: 'property', eventof: 'event'};
 	// other tags that can provide the symbol name
-	var nameables = ['constructor', 'module', 'namespace', 'method', 'property', 'function', 'variable'];
+	var nameables = ['constructor', 'module', 'event', 'namespace', 'method', 'property', 'function', 'variable'];
 	
 	/**
 		Expand some shortcut tags. Modifies the tags argument in-place.
@@ -235,27 +235,25 @@ jsdoc.name = require('jsdoc/name');
 			kind = '',
 			taggedKind = '',
 			memberof = '',
-			taggedMemberof = '',
-			taggedId = '';
+			taggedMemberof = '';
 		
 		var i = tags.length;
 		while(i--) {
-			if (tags[i].name === 'id') {
-				if (taggedId) { tooManyTags('id'); }
-				taggedId = tags[i].text;
-			}
-			
-			if (tags[i].name === 'name') {
+ 			if (tags[i].name === 'private') {
+ 				tags[tags.length] = jsdoc.tag.fromTagText('access private')
+ 			}
+ 			else if (tags[i].name === 'protected') {
+ 				tags[tags.length] = jsdoc.tag.fromTagText('access protected')
+ 			}
+			else if (tags[i].name === 'name') {
 				if (name && name !== tags[i].text) { tooManyNames(name, tags[i].text); }
 				taggedName = name = tags[i].text;
 			}
-			
-			if (tags[i].name === 'kind') {
+			else if (tags[i].name === 'kind') {
 				if (kind && kind !== tags[i].text) { tooManyKinds(kind, tags[i].text); }
 				taggedKind = kind = tags[i].text;
 			}
-			
-			if (tags[i].name === 'memberof') {
+			else if (tags[i].name === 'memberof') {
 				if (memberof) { tooManyTags('memberof'); }
 				taggedMemberof = memberof = tags[i].text;
 			}
@@ -264,6 +262,10 @@ jsdoc.name = require('jsdoc/name');
 				if (tags[i].text) {
 					if (name && name !== tags[i].text) { tooManyNames(name, tags[i].text); }
 					name = tags[i].text;
+				}
+				
+				if (tags[i].type) {
+					tags[tags.length] = jsdoc.tag.fromTagText('type ' + tags[i].type);
 				}
 				
 				if (kind && kind !== tags[i].name) { tooManyKinds(kind, tags[i].name); }
@@ -291,10 +293,6 @@ jsdoc.name = require('jsdoc/name');
 		
 		if (memberof && !taggedMemberof) {
 			tags[tags.length] = jsdoc.tag.fromTagText('memberof ' + memberof);
-		}
-		
-		if (!taggedId) {
-			tags[tags.length] = jsdoc.tag.fromTagText( 'id ' + getUID(name) );
 		}
 	}
 	

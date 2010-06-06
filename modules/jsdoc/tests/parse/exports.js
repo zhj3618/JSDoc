@@ -1,16 +1,16 @@
-/** @namespace */
-geom = geom || {};
+/**
+	@module geom/calc
+	@requires module:maths/base
+ */
+
+require('maths/base');
+
+/** @method */
+exports.Add = function Add() {
+}
 
 /**
-	@module math/geom
-	@exports geom.calc.Add
-	@exports geom.calc.Subtract
- */
-geom.calc = exports;
-
-/** @function */
-geom.calc.Add = function() {
-}
-
-geom.calc.Subtract = function() {
-}
+	π
+	@property
+*/
+exports.pi = 3.1415926535;

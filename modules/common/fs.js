@@ -13,12 +13,12 @@ var fs = (typeof exports === 'undefined')? {} : exports; // like commonjs
 (function() {
 	var slash = java.lang.System.getProperty('file.separator') || '/',
 		File = Packages.java.io.File,
-		defaultEncoding = 'utf-8';
+		defaultEncoding = java.lang.System.getProperty('file.encoding');
 	
 	fs.read = function(path, options) {
 		var options = options || {},
 			encoding = options.encoding || defaultEncoding;
-		
+
 		return readFile(path, encoding);
 	}
 	

@@ -15,20 +15,38 @@ jsdoc.name = (typeof exports === 'undefined')? {} : exports; // like commonjs
 jsdoc.tag = require('jsdoc/tag');
 
 (function() {
+	jsdoc.name._currentModule = '';
+	
 	/**
 		@method jsdoc.name.resolve
 		@param {Doclet} doclet
 	 */
 	jsdoc.name.resolve = function(doclet) {
-		var name = doclet.tagText('name'),
+		var kind = doclet.tagText('kind'),
+			name = doclet.tagText('name'),
 			memberof = doclet.tagText('memberof'),
 			longname,
 			shortname,
-			prefix;
+			prefix,
+			supportedNamespaces = ['module', 'event'];
 			
 		// only keep the first word of the tagged name
 		name = doclet.tagText('name', name.split(/\s+/g)[0]);
-		longname = shortname = name = name.replace(/\.prototype\.?/g, '#');
+		if (jsdoc.name._currentModule) {
+			name = name.replace(/^exports\.(?=.+$)/, jsdoc.name._currentModule+'.');
+		}
+		
+		name = name.replace(/\.prototype\.?/g, '#');
+		
+		// if name doesn't already have a doc-namespace and needs one
+		if (!/^[a-z_$-]+:\S+/i.test(name) && supportedNamespaces.indexOf(kind) > -1) {
+			// add doc-namespace to longname
+			name = kind + ':' + name;
+		}
+		
+		longname = shortname = name;
+		
+		doclet.tagText('name', shortname);
 		
 		if (memberof) {
 			if (name.indexOf(memberof) === 0) {
@@ -54,7 +72,7 @@ jsdoc.tag = require('jsdoc/tag');
 	}
 	
 	jsdoc.name.shorten = function(longname) {
-		var shortname = longname.split(/([#.])/).pop(),
+		var shortname = longname.split(/([#.-])/).pop(),
 			splitOn = RegExp.$1,
 			splitAt = longname.lastIndexOf(splitOn),
 			prefix = (splitAt === -1)? '' : longname.slice(0, splitAt);

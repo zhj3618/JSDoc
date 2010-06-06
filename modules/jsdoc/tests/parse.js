@@ -3,6 +3,7 @@
 	@author Michael Mathews <micmath@gmail.com>
 	@license Apache License 2.0 - See file 'LICENSE.markdown' in this project.
  */
+
 var test = require('jsdoc/test');
 var parse = require('jsdoc/parse');
 /*debug*///var jsdump = require("flesler/jsdump").jsDump;
@@ -209,7 +210,7 @@ exports.testParsePrototype = function() {
 }
 
 exports.testParseExports = function() {
-	test.expect(3);
+	test.expect(2);
 	
 	var filePaths = [HOME + '/modules/jsdoc/tests/parse/exports.js'];
 	
@@ -219,19 +220,18 @@ exports.testParseExports = function() {
 	var docSet = parse.docSet;
 	/*debug*///print('DUMP: '+jsdump.parse(docSet));
 
-	var docs = docSet.getDocsByName('math/geom');
+	var docs = docSet.getDocsByName('module:geom/calc');
 	
 	test.assertEqual(
-		1, docs.length, 'Module math/geom was found.'
+		1, docs.length, 'Module geom/calc was found.'
 	);
 
 	var doc = docs[0].toObject();
-	test.assertEqual(
- 		'object', typeof doc.exports, 'Module math/geom exports is an object.'
- 	);
- 	
+// 	test.assertEqual(
+//  		'geom.calc', doc.exports, 'Module geom/calc exports "geom.calc".'
+//  	);
  	
  	test.assertEqual(
- 		2, doc.exports.length, 'Module math/geom exports 2 members.'
+ 		'maths/base', doc.requires, 'Module geom/calc requires "maths/base".'
  	);
 }

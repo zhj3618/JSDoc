@@ -41,6 +41,7 @@ jsdoc.tag = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			
 			var typeText = splitType(this.text);
 			this.type = typeText.type;
+
 			this.text = trim(typeText.text);
 			
 			if (this.name === 'param') { // is a parameter w/ long format
@@ -76,7 +77,8 @@ jsdoc.tag = (typeof exports === 'undefined')? {} : exports; // like commonjs
 			text = tagText,
 			count = 0;
 		
-		if (tagText[0] === '{') {
+		// I reserve the right to use {@whatever ...} for something unrelated to type
+		if (tagText[0] === '{' && tagText[1] !== '@') {
 			count++;
 			
 			for (var i = 1, leni = tagText.length; i < leni; i++) {

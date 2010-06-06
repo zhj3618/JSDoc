@@ -81,8 +81,6 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		);
 	}
 	
-	var currentModule, currentExport, exported;
-	
 	/**
 		Extract information from jsdoc comments in contents of the given filepath.
 		@method jsdoc.parse.parseDocs
@@ -91,9 +89,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		@returns undefined
 	 */
 	jsdoc.parse.parseDocs = function(filepath) {
-		currentModule = '';
-		currentExport = '';
-		exported = [];
+		jsdoc.name._currentModule = '';
 		
 		if ( !fs.exists(filepath) ) {
 			throw new Error('That file does not exist or cannot be read: ' + filepath);
@@ -124,6 +120,9 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 						thisDoclet = jsdoc.doclet.fromComment(commentSrc);
 						if ( thisDoclet.hasTag('name') ) {
 							jsdoc.parse.docSet.push(thisDoclet);
+							if (thisDoclet.tagText('kind') === 'module') {
+								jsdoc.name._currentModule = thisDoclet.tagText('longname');
+							}
 						}
 					}
 				}
@@ -198,7 +197,7 @@ jsdoc.parse = (typeof exports === 'undefined')? {} : exports; // like commonjs
 		@function parseScript
 	 */
 	function parseScript(name, visitor) {
-		var content = fs.read(name, {encoding: 'utf-8'}), // TODO allow encoding to be user-configured
+		var content = fs.read(name), // TODO allow encoding to be user-configured
 			ast = getParser().parse(content, name, 0);
 			
 		ast.visit(
